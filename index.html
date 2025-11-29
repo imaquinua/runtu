@@ -62,77 +62,94 @@
     </div>
 
     <!-- Main Content -->
-    <main class="min-h-screen flex items-center justify-center px-6 py-12">
-        <div class="max-w-5xl mx-auto text-center">
+    <main class="min-h-screen flex items-center justify-center px-6 py-8">
+        <div class="max-w-6xl mx-auto text-center w-full">
 
             <!-- Logo/Brand -->
-            <div class="mb-12 animate-fade-in">
-                <div class="inline-flex items-center gap-3 mb-4">
-                    <div class="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                    <span class="text-accent font-bold tracking-[0.3em] text-xs uppercase">Run2</span>
-                    <div class="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+            <div class="mb-10 animate-logo-reveal">
+                <div class="relative inline-block">
+                    <!-- Rotating ring effect -->
+                    <div class="absolute inset-0 -m-6 animate-spin-slow">
+                        <div class="absolute inset-0 rounded-full bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-xl"></div>
+                    </div>
+
+                    <!-- Pulsing glow -->
+                    <div class="absolute inset-0 -m-4 animate-pulse-glow">
+                        <div class="absolute inset-0 rounded-full bg-accent/10 blur-2xl"></div>
+                    </div>
+
+                    <!-- Logo container with floating animation -->
+                    <div class="relative animate-float">
+                        <div class="relative inline-block">
+                            <!-- Logo glow shadow -->
+                            <div class="absolute inset-0 blur-xl opacity-60 bg-accent/30 rounded-full"></div>
+
+                            <!-- Actual logo -->
+                            <img src="runtu_logo.png"
+                                 alt="Run2 Logo"
+                                 class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 object-contain filter drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]">
+                        </div>
+                    </div>
+
+                    <!-- Orbiting particles -->
+                    <div class="absolute inset-0 animate-orbit">
+                        <div class="absolute top-0 left-1/2 w-2 h-2 bg-accent rounded-full -ml-1 blur-[1px]"></div>
+                    </div>
+                    <div class="absolute inset-0 animate-orbit-reverse">
+                        <div class="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-accent/60 rounded-full -ml-1 blur-[1px]"></div>
+                    </div>
                 </div>
             </div>
 
             <!-- Main Headline -->
-            <div class="space-y-8 mb-16">
-                <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] text-balance tracking-tight">
-                    <span class="block mb-4 text-white/90">La mejor</span>
-                    <span class="block mb-4 text-white/90">gastronomía</span>
-                    <span class="block mb-4 text-white/90">del mundo</span>
+            <div class="space-y-6 mb-10">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black leading-[0.95] text-balance tracking-tight px-4">
+                    <span class="block mb-3 text-white/90">La mejor</span>
+                    <span class="block mb-3 text-white/90">gastronomía</span>
+                    <span class="block mb-3 text-white/90">del mundo</span>
                     <span class="block gradient-text glow">no puede competir</span>
                     <span class="block gradient-text glow">a ciegas</span>
                 </h1>
 
-                <p class="text-xl sm:text-2xl md:text-3xl font-light text-white/60 max-w-3xl mx-auto leading-relaxed text-balance">
+                <p class="text-lg sm:text-xl md:text-2xl font-light text-white/60 max-w-4xl mx-auto leading-relaxed text-balance px-4">
                     La mejor gastronomía merece la mejor tecnología de <span class="text-accent font-semibold">inteligencia artificial</span>.
                 </p>
             </div>
 
-            <!-- CTA -->
-            <div class="space-y-6 mb-12">
-                <div>
-                    <a href="mailto:hola@runtu.tech"
-                       class="group inline-flex items-center gap-3 px-8 py-4 bg-accent hover:bg-accent-dark text-dark font-bold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(251,191,36,0.4)]">
-                        <span class="text-lg">Hablar con Run2</span>
-                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                        </svg>
-                    </a>
-                </div>
-
+            <!-- Launch Date -->
+            <div class="mb-8">
                 <p class="text-sm text-white/40 font-medium tracking-wide">
                     Lanzamiento: 13 de diciembre, 2025
                 </p>
             </div>
 
             <!-- Countdown Timer -->
-            <div class="mb-12">
-                <div id="countdown" class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <div class="mb-8">
+                <div id="countdown" class="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
                     <div class="flex flex-col items-center">
-                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-accent tabular-nums" id="days">000</div>
-                        <div class="text-xs sm:text-sm text-white/50 font-semibold uppercase tracking-wider mt-1">Días</div>
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-accent tabular-nums" id="days">000</div>
+                        <div class="text-xs text-white/50 font-semibold uppercase tracking-wider mt-1">Días</div>
                     </div>
-                    <div class="text-2xl sm:text-3xl text-white/30 font-bold">:</div>
+                    <div class="text-xl sm:text-2xl text-white/30 font-bold">:</div>
                     <div class="flex flex-col items-center">
-                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-white/90 tabular-nums" id="hours">00</div>
-                        <div class="text-xs sm:text-sm text-white/50 font-semibold uppercase tracking-wider mt-1">Horas</div>
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-white/90 tabular-nums" id="hours">00</div>
+                        <div class="text-xs text-white/50 font-semibold uppercase tracking-wider mt-1">Horas</div>
                     </div>
-                    <div class="text-2xl sm:text-3xl text-white/30 font-bold">:</div>
+                    <div class="text-xl sm:text-2xl text-white/30 font-bold">:</div>
                     <div class="flex flex-col items-center">
-                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-white/90 tabular-nums" id="minutes">00</div>
-                        <div class="text-xs sm:text-sm text-white/50 font-semibold uppercase tracking-wider mt-1">Minutos</div>
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-white/90 tabular-nums" id="minutes">00</div>
+                        <div class="text-xs text-white/50 font-semibold uppercase tracking-wider mt-1">Minutos</div>
                     </div>
-                    <div class="text-2xl sm:text-3xl text-white/30 font-bold">:</div>
+                    <div class="text-xl sm:text-2xl text-white/30 font-bold">:</div>
                     <div class="flex flex-col items-center">
-                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-white/90 tabular-nums" id="seconds">00</div>
-                        <div class="text-xs sm:text-sm text-white/50 font-semibold uppercase tracking-wider mt-1">Segundos</div>
+                        <div class="text-2xl sm:text-3xl md:text-4xl font-black text-white/90 tabular-nums" id="seconds">00</div>
+                        <div class="text-xs text-white/50 font-semibold uppercase tracking-wider mt-1">Segundos</div>
                     </div>
                 </div>
             </div>
 
             <!-- Features Pills -->
-            <div class="flex flex-wrap items-center justify-center gap-3 max-w-3xl mx-auto">
+            <div class="flex flex-wrap items-center justify-center gap-3 max-w-4xl mx-auto">
                 <span class="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-xs font-semibold text-white/70 tracking-wide">
                     IA entrenada localmente
                 </span>
@@ -166,8 +183,92 @@
             }
         }
 
+        @keyframes logo-reveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-20px);
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes spin-slow {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        @keyframes orbit {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes orbit-reverse {
+            from {
+                transform: rotate(360deg);
+            }
+            to {
+                transform: rotate(0deg);
+            }
+        }
+
         .animate-fade-in {
             animation: fade-in 1s ease-out;
+        }
+
+        .animate-logo-reveal {
+            animation: logo-reveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .animate-spin-slow {
+            animation: spin-slow 20s linear infinite;
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        .animate-orbit {
+            animation: orbit 8s linear infinite;
+        }
+
+        .animate-orbit-reverse {
+            animation: orbit-reverse 6s linear infinite;
         }
 
         h1 span {
