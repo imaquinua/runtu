@@ -3,185 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Run2 · Tecnología de marketing gastronómico</title>
+    <meta name="description" content="La mejor gastronomía del mundo merece la mejor tecnología de IA.">
+    <title>Run2 · Pronto</title>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark': '#020617',
+                        'accent': '#fbbf24',
+                        'accent-dark': '#f59e0b',
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-balance {
+                text-wrap: balance;
+            }
+
+            .glow {
+                text-shadow: 0 0 40px rgba(251, 191, 36, 0.3);
+            }
+
+            .gradient-text {
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+        }
+    </style>
 </head>
-<body>
+<body class="font-montserrat bg-dark text-white antialiased overflow-hidden">
 
-    <header class="site-header">
-        <div class="logo-wrap">
-            <img src="runtu_logo.png" alt="Run2 logo">
-            <span>Run2</span>
-        </div>
-        <nav class="nav-actions">
-            <a href="#intro">Qué es Run2</a>
-            <a href="#services">Servicios</a>
-            <a href="#cta" class="btn small">Habla con Run2</a>
-        </nav>
-    </header>
+    <!-- Background -->
+    <div class="fixed inset-0 -z-10">
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-black"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(251,191,36,0.08),transparent_50%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(251,191,36,0.05),transparent_50%)]"></div>
 
-    <main>
-    <section id="hero" class="hero">
-        <div id="particles-js"></div>
-        <div class="hero-overlay"></div>
-        <div class="hero-grid">
-            <div class="hero-text">
-                <span class="eyebrow reveal">Run2 · Lanzamiento</span>
-                <h1 class="reveal">IA + marketing digital para que la gastronomía peruana gane en todos los frentes.</h1>
-                <p class="reveal" data-delay="90">Run2 es tecnología diseñada para crear servicios de marketing. Integramos inteligencia artificial y marketing digital enfocados en mejorar el funcionamiento de la gastronomía en el Perú: ordenamos la operación, amplificamos la marca y hacemos medible cada paso.</p>
-                <div class="cta-group reveal" data-delay="150">
-                    <a href="#cta" class="btn primary">Habla con Run2</a>
-                    <a href="#services" class="btn ghost">Explorar servicios</a>
-                </div>
-                <div class="pill-row reveal" data-delay="220">
-                    <span>IA entrenada con datos locales</span>
-                    <span>Playbooks de marketing gastronómico</span>
-                    <span>Operación medible en tiempo real</span>
+        <!-- Animated grain -->
+        <div class="absolute inset-0 opacity-[0.015]" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 /%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 /%3E%3C/svg%3E');"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="min-h-screen flex items-center justify-center px-6 py-12">
+        <div class="max-w-5xl mx-auto text-center">
+
+            <!-- Logo/Brand -->
+            <div class="mb-12 animate-fade-in">
+                <div class="inline-flex items-center gap-3 mb-4">
+                    <div class="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+                    <span class="text-accent font-bold tracking-[0.3em] text-xs uppercase">Run2</span>
+                    <div class="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
                 </div>
             </div>
-            <div class="hero-card reveal" data-delay="120">
-                <p class="kicker">Tecnología diseñada para crear servicios de marketing</p>
-                <h3>Orquestamos IA, marketing digital y operaciones para la gastronomía del Perú.</h3>
-                <div class="mini-grid">
-                    <div class="stat">
-                        <span>IA</span>
-                        <p>Creatividad, copies y media plan generados en español con voz de marca.</p>
-                    </div>
-                    <div class="stat">
-                        <span>Ops</span>
-                        <p>Automatizaciones que respetan turnos, stock y reservas.</p>
-                    </div>
-                    <div class="stat">
-                        <span>Data</span>
-                        <p>KPI conectados a sala, delivery y RRSS para decidir inversión.</p>
-                    </div>
+
+            <!-- Main Headline -->
+            <div class="space-y-8 mb-16">
+                <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[0.95] text-balance tracking-tight">
+                    <span class="block mb-4 text-white/90">La mejor</span>
+                    <span class="block mb-4 text-white/90">gastronomía</span>
+                    <span class="block mb-4 text-white/90">del mundo</span>
+                    <span class="block gradient-text glow">no puede competir</span>
+                    <span class="block gradient-text glow">a ciegas</span>
+                </h1>
+
+                <p class="text-xl sm:text-2xl md:text-3xl font-light text-white/60 max-w-3xl mx-auto leading-relaxed text-balance">
+                    La mejor gastronomía merece la mejor tecnología de <span class="text-accent font-semibold">inteligencia artificial</span>.
+                </p>
+            </div>
+
+            <!-- CTA -->
+            <div class="space-y-6 mb-12">
+                <div>
+                    <a href="mailto:hola@runtu.tech"
+                       class="group inline-flex items-center gap-3 px-8 py-4 bg-accent hover:bg-accent-dark text-dark font-bold rounded-full transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(251,191,36,0.4)]">
+                        <span class="text-lg">Hablar con Run2</span>
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                        </svg>
+                    </a>
                 </div>
-                <div class="card-note">Porque la mejor gastronomía merece la mejor tecnología.</div>
-            </div>
-        </div>
-    </section>
 
-    <section id="intro" class="section">
-        <div class="section-grid">
-            <div class="text-block">
-                <p class="eyebrow reveal">Qué es Run2</p>
-                <h2 class="reveal">Tecnología diseñada para crear servicios de marketing.</h2>
-                <p class="reveal" data-delay="90">Combinamos inteligencia artificial, marketing digital y operación para que la gastronomía peruana funcione con más precisión: ordenamos procesos, amplificamos la marca y medimos lo que sucede en cada canal.</p>
-                <div class="pill-grid">
-                    <span class="pill reveal" data-delay="150">Arquitectura lista para Latinoamérica</span>
-                    <span class="pill reveal" data-delay="200">IA + marketing en un solo stack</span>
-                    <span class="pill reveal" data-delay="250">Obsesionados con la trazabilidad</span>
-                </div>
+                <p class="text-sm text-white/40 font-medium tracking-wide">
+                    Lanzamiento próximo · Perú 2025
+                </p>
             </div>
-            <div class="shape-card reveal" data-delay="120">
-                <p class="tag">Hecho para el Perú</p>
-                <h3>Marketing asistido por IA que entiende cocina, barra y sala.</h3>
-                <p>Servicios diseñados para la velocidad de internet local, las temporadas gastronómicas y la cultura que sostiene cada plato.</p>
-            </div>
-        </div>
-    </section>
 
-    <section id="services" class="section soft-bg">
-        <div class="section-header">
-            <p class="eyebrow reveal">Servicios Run2</p>
-            <h2 class="reveal">Servicios Run2 listos para lanzar.</h2>
-            <p class="reveal" data-delay="90">Intervenimos rápido, con entregables claros y tecnología que se queda trabajando en segundo plano.</p>
-        </div>
-        <div class="service-grid">
-            <div class="service-card reveal" data-delay="120">
-                <p class="tag">AI Lab</p>
-                <h3>Campañas generadas por IA</h3>
-                <p>Creatividades, copies y cronogramas calibrados con la voz de tu marca y el pulso gastronómico local.</p>
+            <!-- Features Pills -->
+            <div class="flex flex-wrap items-center justify-center gap-3 max-w-3xl mx-auto">
+                <span class="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-xs font-semibold text-white/70 tracking-wide">
+                    IA entrenada localmente
+                </span>
+                <span class="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-xs font-semibold text-white/70 tracking-wide">
+                    Marketing inteligente
+                </span>
+                <span class="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-xs font-semibold text-white/70 tracking-wide">
+                    Operación medible
+                </span>
             </div>
-            <div class="service-card reveal" data-delay="160">
-                <p class="tag">Growth Ops</p>
-                <h3>Automatizaciones omnicanal</h3>
-                <p>Secuencias de CRM, social y paid que se activan según reservas, ocupación, delivery o eventos.</p>
-            </div>
-            <div class="service-card reveal" data-delay="200">
-                <p class="tag">Data + Media</p>
-                <h3>Inteligencia operativa</h3>
-                <p>Métricas conectadas a sala, POS y apps de entrega para decidir inversión con datos reales.</p>
-            </div>
-            <div class="service-card reveal" data-delay="240">
-                <p class="tag">Brand Systems</p>
-                <h3>Voz consistente en todo canal</h3>
-                <p>Bibliotecas creativas, guidelines dinámicas y dashboards para mantener tu marca afilada.</p>
-            </div>
-        </div>
-    </section>
 
-    <section id="method" class="section">
-        <div class="section-grid">
-            <div class="text-block">
-                <p class="eyebrow reveal">Cómo operamos</p>
-                <h2 class="reveal">IA + marketing + operación, trabajando juntos.</h2>
-                <p class="reveal" data-delay="90">Reducimos la fricción entre estrategia, ejecución y medición para que el crecimiento no dependa de apagar incendios en la operación.</p>
-            </div>
-            <div class="steps">
-                <div class="step reveal" data-delay="120">
-                    <span class="step-number">1</span>
-                    <div>
-                        <h3>Descubrimiento operativo</h3>
-                        <p>Mapeamos turnos, canales y capacidad para ajustar la estrategia a la realidad de cocina y sala.</p>
-                    </div>
-                </div>
-                <div class="step reveal" data-delay="180">
-                    <span class="step-number">2</span>
-                    <div>
-                        <h3>Playbooks con IA</h3>
-                        <p>Generamos campañas, contenido y media plan en días, no semanas, listos para activar.</p>
-                    </div>
-                </div>
-                <div class="step reveal" data-delay="240">
-                    <span class="step-number">3</span>
-                    <div>
-                        <h3>Optimización viva</h3>
-                        <p>Medimos reservas, delivery y tickets promedio para ajustar inversión y creatividad en tiempo real.</p>
-                    </div>
-                </div>
-            </div>
         </div>
-    </section>
-
-    <section id="audiences" class="section pattern-bg">
-        <div class="section-header">
-            <p class="eyebrow reveal">Dónde aceleramos</p>
-            <h2 class="reveal">Hecho para toda la experiencia gastronómica.</h2>
-            <p class="reveal" data-delay="90">Trabajamos con quienes crean, operan y difunden la cocina peruana.</p>
-        </div>
-        <div class="chip-grid">
-            <span class="chip reveal" data-delay="120">Grupos gastronómicos</span>
-            <span class="chip reveal" data-delay="150">Restaurantes de autor</span>
-            <span class="chip reveal" data-delay="180">Cadenas fast casual</span>
-            <span class="chip reveal" data-delay="210">Hoteles</span>
-            <span class="chip reveal" data-delay="240">Bares y rooftops</span>
-            <span class="chip reveal" data-delay="270">Catering & eventos</span>
-        </div>
-    </section>
-
-    <section id="cta" class="section cta-section">
-        <div class="cta-card reveal">
-            <p class="eyebrow">Hablemos</p>
-            <h2>Lanzamos Run2 con aliados que quieren moverse rápido.</h2>
-            <p>Si quieres que la IA y el marketing digital trabajen para tu operación gastronómica, hablemos.</p>
-            <div class="cta-group">
-                <a href="mailto:hola@runtu.tech" class="btn primary">Escríbenos</a>
-                <a href="#services" class="btn ghost">Explorar servicios</a>
-            </div>
-        </div>
-    </section>
-
     </main>
 
-    <footer class="site-footer">
-        <p>Run2 · Tecnología para la gastronomía del Perú</p>
+    <!-- Footer -->
+    <footer class="fixed bottom-0 left-0 right-0 p-6 text-center">
+        <p class="text-xs text-white/30 font-medium">
+            © 2025 Run2 · Tecnología para la gastronomía peruana
+        </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="js/script.js"></script>
+    <style>
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 1s ease-out;
+        }
+
+        h1 span {
+            animation: fade-in 1s ease-out backwards;
+        }
+
+        h1 span:nth-child(1) { animation-delay: 0.1s; }
+        h1 span:nth-child(2) { animation-delay: 0.2s; }
+        h1 span:nth-child(3) { animation-delay: 0.3s; }
+        h1 span:nth-child(4) { animation-delay: 0.4s; }
+        h1 span:nth-child(5) { animation-delay: 0.5s; }
+    </style>
+
 </body>
 </html>
