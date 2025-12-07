@@ -1,8 +1,21 @@
+import Link from "next/link";
 import { RuntuLogo } from "@/components/ui/runtu-logo";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-end">
+          <Link
+            href="/login"
+            className="px-5 py-2.5 bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-semibold text-sm rounded-lg transition-colors"
+          >
+            Iniciar sesión
+          </Link>
+        </div>
+      </header>
+
       {/* Background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-black" />
