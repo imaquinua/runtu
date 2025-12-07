@@ -20,7 +20,9 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/app/dashboard");
+
+  // Redirect to onboarding - it will check if complete and redirect to dashboard
+  redirect("/app/onboarding");
 }
 
 export async function register(formData: FormData) {
