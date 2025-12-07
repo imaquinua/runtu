@@ -6,6 +6,12 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Skip auth check if Supabase is not configured
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://placeholder.supabase.co') {
+    return <>{children}</>;
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
