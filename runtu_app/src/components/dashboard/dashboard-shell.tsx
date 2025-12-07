@@ -27,7 +27,13 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
   const pageTitle = pageTitles[pathname] || "Runtu";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#020617]">
+      {/* Background gradient */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-black" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(99,102,241,0.08),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(99,102,241,0.05),transparent_50%)]" />
+      </div>
       {/* Desktop Sidebar - hidden on mobile */}
       <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-64 md:flex-col">
         <Sidebar businessName={businessName} />

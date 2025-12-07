@@ -43,30 +43,30 @@ export function SummaryCards({
       icon: FolderOpen,
       value: filesUploaded,
       label: "archivos en tu cerebro",
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      color: "text-blue-400",
+      bgColor: "bg-blue-500/20",
     },
     {
       icon: Clock,
       value: formatRelativeTime(lastActivity),
       label: "última actividad",
-      color: "text-amber-600",
-      bgColor: "bg-amber-100",
+      color: "text-amber-400",
+      bgColor: "bg-amber-500/20",
       isText: true,
     },
     {
       icon: MessageCircle,
       value: questionsAnswered,
       label: "preguntas este mes",
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-green-400",
+      bgColor: "bg-green-500/20",
     },
     {
       icon: processingFiles > 0 ? Loader2 : CheckCircle,
       value: processingFiles > 0 ? processingFiles : "Todo",
       label: processingFiles > 0 ? "archivos procesando" : "al día",
-      color: processingFiles > 0 ? "text-orange-600" : "text-emerald-600",
-      bgColor: processingFiles > 0 ? "bg-orange-100" : "bg-emerald-100",
+      color: processingFiles > 0 ? "text-orange-400" : "text-emerald-400",
+      bgColor: processingFiles > 0 ? "bg-orange-500/20" : "bg-emerald-500/20",
       animate: processingFiles > 0,
     },
   ];
@@ -76,7 +76,7 @@ export function SummaryCards({
       {cards.map((card, index) => (
         <div
           key={index}
-          className="bg-white rounded-xl border border-gray-200 p-4 md:p-5 hover:shadow-md transition-shadow cursor-default"
+          className="bg-white/5 rounded-xl border border-white/10 p-4 md:p-5 hover:bg-white/10 hover:border-white/20 transition-all cursor-default"
         >
           <div className="flex items-start gap-3">
             <div className={`p-2 rounded-lg ${card.bgColor}`}>
@@ -88,13 +88,13 @@ export function SummaryCards({
             </div>
             <div className="flex-1 min-w-0">
               <p
-                className={`text-xl md:text-2xl font-bold text-gray-900 ${
+                className={`text-xl md:text-2xl font-bold text-white ${
                   card.isText ? "text-base md:text-lg" : ""
                 }`}
               >
                 {card.value}
               </p>
-              <p className="text-xs md:text-sm text-gray-500 truncate">
+              <p className="text-xs md:text-sm text-white/50 truncate">
                 {card.label}
               </p>
             </div>

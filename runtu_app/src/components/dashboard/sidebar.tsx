@@ -34,11 +34,11 @@ export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) 
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-slate-900/50 backdrop-blur-xl border-r border-white/10">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
         <RuntuLogo variant="minimal" size="sm" />
-        <span className="font-bold text-xl text-gray-900">Runtu</span>
+        <span className="font-bold text-xl text-white">Runtu</span>
       </div>
 
       {/* Navigation */}
@@ -54,18 +54,18 @@ export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) 
               onClick={onClose}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-indigo-50 text-indigo-600"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  ? "bg-indigo-500/20 text-indigo-400"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
               }`}
             >
               <Icon
                 className={`w-5 h-5 ${
-                  isActive ? "text-indigo-600" : "text-gray-400"
+                  isActive ? "text-indigo-400" : "text-white/40"
                 }`}
               />
               {item.label}
               {isActive && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
               )}
             </Link>
           );
@@ -73,17 +73,17 @@ export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) 
       </nav>
 
       {/* Bottom section */}
-      <div className="border-t border-gray-100 p-4">
+      <div className="border-t border-white/10 p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-white truncate">
               {businessName}
             </p>
-            <p className="text-xs text-gray-500">Plan gratuito</p>
+            <p className="text-xs text-white/40">Plan gratuito</p>
           </div>
           <button
             onClick={handleLogout}
-            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            className="p-2 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
             title="Cerrar sesión"
           >
             <LogOut className="w-5 h-5" />
