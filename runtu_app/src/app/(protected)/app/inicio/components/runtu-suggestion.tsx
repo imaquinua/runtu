@@ -19,7 +19,7 @@ export function RuntuSuggestion() {
             que no encontrarás solo mirando los números.
           </p>
           <Link
-            href="/app/archivos"
+            href="/app/subir"
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
           >
             <Upload className="w-4 h-4" />

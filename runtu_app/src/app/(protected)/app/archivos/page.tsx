@@ -6,6 +6,7 @@ import { FileFilters } from "./components/file-filters";
 import { FileList } from "./components/file-list";
 import { EmptyState } from "./components/empty-state";
 import { DeleteModal } from "./components/delete-modal";
+import { UploadModal } from "@/components/upload";
 
 export type FileStatus = "processed" | "processing" | "error";
 export type FileType = "document" | "spreadsheet" | "image" | "audio" | "video";
@@ -92,6 +93,7 @@ export default function ArchivosPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FileType | "all">("all");
   const [deleteFile, setDeleteFile] = useState<FileItem | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Filter files
   const filteredFiles = files.filter((file) => {
@@ -121,7 +123,10 @@ export default function ArchivosPage() {
             Todo lo que Runtu sabe de tu negocio
           </p>
         </div>
-        <button className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg shadow-indigo-500/25">
+        <button
+          onClick={() => setShowUploadModal(true)}
+          className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-lg shadow-indigo-500/25"
+        >
           <Upload className="w-4 h-4" />
           Subir archivo
         </button>
@@ -148,6 +153,12 @@ export default function ArchivosPage() {
         file={deleteFile}
         onClose={() => setDeleteFile(null)}
         onConfirm={confirmDelete}
+      />
+
+      {/* Upload Modal */}
+      <UploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
       />
     </div>
   );

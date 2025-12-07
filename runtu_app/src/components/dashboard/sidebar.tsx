@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
+  Upload,
   Folder,
   MessageCircle,
   FileText,
@@ -20,6 +21,7 @@ interface SidebarProps {
 
 const navItems = [
   { href: "/app/inicio", label: "Inicio", icon: Home },
+  { href: "/app/subir", label: "Subir", icon: Upload },
   { href: "/app/archivos", label: "Mis Archivos", icon: Folder },
   { href: "/app/chat", label: "Chat", icon: MessageCircle },
   { href: "/app/reportes", label: "Reportes", icon: FileText },
