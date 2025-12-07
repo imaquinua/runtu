@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { DashboardShell } from "@/components/dashboard";
 
 export default async function DashboardLayout({
@@ -9,10 +9,7 @@ export default async function DashboardLayout({
   let businessName = "Mi Negocio";
 
   // Fetch business name if Supabase is configured
-  if (
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://placeholder.supabase.co"
-  ) {
+  if (isSupabaseConfigured()) {
     try {
       const supabase = await createClient();
       const {

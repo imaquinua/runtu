@@ -1,30 +1,29 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, Package, BarChart3, MessageCircle } from "lucide-react";
 
 export default async function DashboardPage() {
-  let user = null;
   let businessName = "tu negocio";
 
   // Only fetch user if Supabase is configured
-  if (
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://placeholder.supabase.co"
-  ) {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = await createClient();
+      const { data } = await supabase.auth.getUser();
 
-    if (user) {
-      const { data: business } = await supabase
-        .from("businesses")
-        .select("name")
-        .eq("user_id", user.id)
-        .single();
+      if (data.user) {
+        const { data: business } = await supabase
+          .from("businesses")
+          .select("name")
+          .eq("user_id", data.user.id)
+          .single();
 
-      if (business?.name) {
-        businessName = business.name;
+        if (business?.name) {
+          businessName = business.name;
+        }
       }
+    } catch {
+      // Silently fail
     }
   }
 
