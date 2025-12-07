@@ -12,7 +12,8 @@ interface DashboardShellProps {
 }
 
 const pageTitles: Record<string, string> = {
-  "/app/dashboard": "Inicio",
+  "/app/inicio": "Inicio",
+  "/app/dashboard": "Dashboard",
   "/app/archivos": "Mis Archivos",
   "/app/chat": "Chat con Runtu",
   "/app/reportes": "Reportes",

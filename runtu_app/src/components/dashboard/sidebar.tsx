@@ -19,7 +19,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: "/app/dashboard", label: "Inicio", icon: Home },
+  { href: "/app/inicio", label: "Inicio", icon: Home },
   { href: "/app/archivos", label: "Mis Archivos", icon: Folder },
   { href: "/app/chat", label: "Chat", icon: MessageCircle },
   { href: "/app/reportes", label: "Reportes", icon: FileText },
