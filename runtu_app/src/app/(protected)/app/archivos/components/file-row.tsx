@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Table, Image, Mic, Video, MoreVertical, Trash2, Download, Eye } from "lucide-react";
+import { FileText, Table, Image, Mic, Video, MoreVertical, Trash2, Download, Eye, RefreshCw } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { FileItem, FileType, FileStatus } from "../page";
@@ -9,6 +9,7 @@ interface FileRowProps {
   file: FileItem;
   onDelete: (file: FileItem) => void;
   onDownload?: (file: FileItem) => void;
+  onReprocess?: (file: FileItem) => void;
 }
 
 function getFileIcon(type: FileType) {
@@ -34,6 +35,8 @@ function getStatusBadge(status: FileStatus) {
       return { label: "Procesado", className: "bg-green-500/20 text-green-400 border-green-500/30" };
     case "processing":
       return { label: "Procesando...", className: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" };
+    case "pending":
+      return { label: "Pendiente", className: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
     case "error":
       return { label: "Error", className: "bg-red-500/20 text-red-400 border-red-500/30" };
     default:
@@ -71,7 +74,8 @@ function formatDate(date: Date): string {
   }
 }
 
-export function FileRow({ file, onDelete, onDownload }: FileRowProps) {
+export function FileRow({ file, onDelete, onDownload, onReprocess }: FileRowProps) {
+  const canReprocess = file.status === "error" || file.status === "pending";
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -149,6 +153,18 @@ export function FileRow({ file, onDelete, onDownload }: FileRowProps) {
                 <Download className="w-4 h-4" />
                 Descargar
               </button>
+              {canReprocess && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onReprocess?.(file);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Reprocesar
+                </button>
+              )}
               <button
                 onClick={() => {
                   setMenuOpen(false);

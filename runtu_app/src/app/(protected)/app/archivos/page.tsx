@@ -10,7 +10,7 @@ import { UploadModal } from "@/components/upload";
 import { getUploads, deleteUpload, getDownloadUrl, type UploadRecord } from "@/app/actions/uploads";
 import { getFileTypeFromMime, type FileTypeEnum } from "@/types/file";
 
-export type FileStatus = "processed" | "processing" | "error";
+export type FileStatus = "processed" | "processing" | "pending" | "error";
 export type FileType = "document" | "spreadsheet" | "image" | "audio" | "video";
 
 export interface FileItem {
@@ -58,6 +58,9 @@ function mapUploadToFileItem(upload: UploadRecord): FileItem {
       break;
     case "failed":
       status = "error";
+      break;
+    case "pending":
+      status = "pending";
       break;
     default:
       status = "processing";
@@ -158,6 +161,39 @@ export default function ArchivosPage() {
     }
   };
 
+  const handleReprocess = async (file: FileItem) => {
+    // Update UI to show processing
+    setFiles((prev) =>
+      prev.map((f) => (f.id === file.id ? { ...f, status: "processing" as FileStatus } : f))
+    );
+
+    try {
+      const response = await fetch("/api/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uploadId: file.id }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Refresh to get updated status
+        setTimeout(() => fetchUploads(true), 2000);
+      } else {
+        alert(result.error || "Error al reprocesar");
+        // Revert status
+        setFiles((prev) =>
+          prev.map((f) => (f.id === file.id ? { ...f, status: "error" as FileStatus } : f))
+        );
+      }
+    } catch (err) {
+      alert("Error de conexión");
+      setFiles((prev) =>
+        prev.map((f) => (f.id === file.id ? { ...f, status: "error" as FileStatus } : f))
+      );
+    }
+  };
+
   const handleUploadComplete = () => {
     setShowUploadModal(false);
     fetchUploads(true);
@@ -245,6 +281,7 @@ export default function ArchivosPage() {
           files={filteredFiles}
           onDelete={handleDelete}
           onDownload={handleDownload}
+          onReprocess={handleReprocess}
         />
       )}
 

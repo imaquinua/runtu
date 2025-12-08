@@ -8,9 +8,10 @@ interface FileListProps {
   files: FileItem[];
   onDelete: (file: FileItem) => void;
   onDownload?: (file: FileItem) => void;
+  onReprocess?: (file: FileItem) => void;
 }
 
-export function FileList({ files, onDelete, onDownload }: FileListProps) {
+export function FileList({ files, onDelete, onDownload, onReprocess }: FileListProps) {
   return (
     <>
       {/* Desktop Table View */}
@@ -37,7 +38,7 @@ export function FileList({ files, onDelete, onDownload }: FileListProps) {
           </thead>
           <tbody className="divide-y divide-white/5">
             {files.map((file) => (
-              <FileRow key={file.id} file={file} onDelete={onDelete} onDownload={onDownload} />
+              <FileRow key={file.id} file={file} onDelete={onDelete} onDownload={onDownload} onReprocess={onReprocess} />
             ))}
           </tbody>
         </table>
@@ -46,7 +47,7 @@ export function FileList({ files, onDelete, onDownload }: FileListProps) {
       {/* Mobile Card View */}
       <div className="md:hidden grid gap-3">
         {files.map((file) => (
-          <FileCard key={file.id} file={file} onDelete={onDelete} onDownload={onDownload} />
+          <FileCard key={file.id} file={file} onDelete={onDelete} onDownload={onDownload} onReprocess={onReprocess} />
         ))}
       </div>
     </>
