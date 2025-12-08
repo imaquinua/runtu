@@ -103,10 +103,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 7. Construir prompt con contexto
+    // 7. Extraer fuentes únicas de los resultados RAG
+    const sources: SourceInfo[] = ragResult.results.map((r, index) => ({
+      id: r.id,
+      name: r.source.filename || r.source.context || `Fuente ${index + 1}`,
+      type: r.source.type,
+      preview: r.snippet.slice(0, 100),
+    }));
+
+    // 8. Construir prompt con contexto y fuentes
     const systemPrompt = buildSystemPrompt(
       business.name,
-      ragResult.context?.context ?? ""
+      ragResult.context?.context ?? "",
+      sources
     );
 
     // 8. Configurar Gemini
@@ -172,6 +181,9 @@ export async function POST(request: NextRequest) {
     const readable = new ReadableStream({
       async start(controller) {
         try {
+          // Enviar fuentes al inicio del stream
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sources })}\n\n`));
+
           for await (const chunk of result.stream) {
             const text = chunk.text();
             if (text) {
@@ -222,10 +234,23 @@ function jsonResponse(data: Record<string, unknown>, status = 200): Response {
   });
 }
 
-function buildSystemPrompt(businessName: string, context: string): string {
+interface SourceInfo {
+  id: string;
+  name: string;
+  type: string;
+  preview: string;
+}
+
+function buildSystemPrompt(businessName: string, context: string, sources: SourceInfo[]): string {
+  // Agregar índices de fuentes al contexto
+  const sourcesReference = sources.length > 0
+    ? `\n\nFUENTES DISPONIBLES:\n${sources.map((s, i) => `[${i + 1}] ${s.name} (${s.type})`).join('\n')}`
+    : '';
+
   return `${RUNTU_SYSTEM_PROMPT}
 
 NEGOCIO: ${businessName}
+${sourcesReference}
 
 ---
 
@@ -235,7 +260,7 @@ ${context}
 
 ---
 
-Responde la siguiente pregunta del usuario basándote en la información anterior.`;
+Responde la siguiente pregunta del usuario basándote en la información anterior. Cita las fuentes usando [[1]], [[2]], etc.`;
 }
 
 function buildGeminiHistory(

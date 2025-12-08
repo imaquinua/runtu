@@ -175,7 +175,7 @@ function extractSources(results: RAGSearchResult[]): Source[] {
         id: result.id,
         name: result.source.context ?? result.source.filename ?? "Documento",
         type: result.chunk_type,
-        chunkPreview: result.snippet.slice(0, 100) + (result.snippet.length > 100 ? "..." : ""),
+        preview: result.snippet.slice(0, 100) + (result.snippet.length > 100 ? "..." : ""),
       });
     }
   }

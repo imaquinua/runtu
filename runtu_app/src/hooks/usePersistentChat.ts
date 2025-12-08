@@ -217,6 +217,7 @@ export function usePersistentChat(
 
         const decoder = new TextDecoder();
         let fullText = "";
+        let streamSources: { id: string; name: string; type: string; preview: string }[] = [];
 
         while (true) {
           const { done, value } = await reader.read();
@@ -235,6 +236,10 @@ export function usePersistentChat(
 
               try {
                 const parsed = JSON.parse(data);
+                // Capturar fuentes enviadas al inicio
+                if (parsed.sources) {
+                  streamSources = parsed.sources;
+                }
                 if (parsed.text) {
                   fullText += parsed.text;
                   setStreamingText(fullText);
@@ -249,9 +254,10 @@ export function usePersistentChat(
           }
         }
 
-        // Guardar respuesta completa en BD
+        // Guardar respuesta completa en BD (sin sources por ahora, se parsean del contenido)
         const assistantMessage = await saveMessage(convId, "assistant", fullText);
-        setMessages((prev) => [...prev, assistantMessage]);
+        // Agregar mensaje con fuentes al state local
+        setMessages((prev) => [...prev, { ...assistantMessage, sources: streamSources }]);
 
         // Generar título si es primer intercambio
         if (wasFirstExchange) {

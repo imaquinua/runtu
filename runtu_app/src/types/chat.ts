@@ -6,7 +6,7 @@ export interface Source {
   id: string;
   name: string;
   type: string;
-  chunkPreview: string;
+  preview: string;
 }
 
 export interface Message {
