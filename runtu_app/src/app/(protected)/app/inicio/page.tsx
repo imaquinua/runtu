@@ -4,6 +4,7 @@ import { SummaryCards } from "./components/summary-cards";
 import { QuickActions } from "./components/quick-actions";
 import { RecentActivity } from "./components/recent-activity";
 import { RuntuSuggestion } from "./components/runtu-suggestion";
+import { SummaryNotificationWrapper } from "@/components/summaries";
 
 // Mock data for now
 const mockSummary = {
@@ -65,6 +66,9 @@ export default async function InicioPage() {
 
   return (
     <div className="space-y-6 md:space-y-8">
+      {/* Summary Notification */}
+      <SummaryNotificationWrapper />
+
       {/* Greeting */}
       <GreetingSection userName={userName} />
 

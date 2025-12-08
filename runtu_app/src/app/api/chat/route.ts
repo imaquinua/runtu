@@ -5,7 +5,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
-import { processChat, ChatError, type ChatHistoryMessage } from "@/lib/chat";
+import {
+  processChat,
+  ChatError,
+  detectIntent,
+  getReportConfirmationMessage,
+  getReportSuccessMessage,
+  type ChatHistoryMessage,
+} from "@/lib/chat";
+import { generateReport } from "@/lib/reports";
+import { saveReport } from "@/lib/db/reports";
 
 // ============================================
 // Types
@@ -116,7 +125,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Procesar chat
+    // 6. Detectar intención de reporte
+    const intent = detectIntent(trimmedMessage);
+
+    if (intent.type === "report" && intent.report) {
+      console.log("[API/Chat] Report intent detected:", intent.report);
+
+      try {
+        // Generar el reporte
+        const report = await generateReport(business.id, {
+          type: intent.report.reportType,
+          period: intent.report.period,
+          language: "es",
+        });
+
+        // Guardar en base de datos
+        const savedReport = await saveReport(report);
+
+        console.log("[API/Chat] Report generated:", savedReport.id);
+
+        // Retornar respuesta con el reporte generado
+        return NextResponse.json({
+          content: getReportSuccessMessage(savedReport.id, savedReport.title),
+          sources: [],
+          conversationId: body.conversationId,
+          metrics: {
+            totalTimeMs: Date.now() - startTime,
+            chunksUsed: 0,
+          },
+          // Incluir info del reporte para la UI
+          report: {
+            id: savedReport.id,
+            title: savedReport.title,
+            type: savedReport.config.type,
+            period: savedReport.config.period,
+          },
+        });
+      } catch (reportError) {
+        console.error("[API/Chat] Report generation error:", reportError);
+
+        // Si falla la generación del reporte, informar al usuario
+        return NextResponse.json({
+          content:
+            "Lo siento, hubo un problema generando el reporte. " +
+            "Puedes intentar de nuevo o ir a la sección de [Reportes](/app/reportes) " +
+            "para generarlo manualmente.",
+          sources: [],
+          conversationId: body.conversationId,
+          metrics: {
+            totalTimeMs: Date.now() - startTime,
+            chunksUsed: 0,
+          },
+        });
+      }
+    }
+
+    // 7. Procesar chat normal
     const response = await processChat(
       {
         businessId: business.id,
@@ -129,7 +193,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // 7. Retornar respuesta
+    // 8. Retornar respuesta
     return NextResponse.json({
       content: response.content,
       sources: response.sources,

@@ -8,3 +8,5 @@ export { NoKnowledge } from "./NoKnowledge";
 export { ConversationSidebar } from "./ConversationSidebar";
 export { SourcesList } from "./SourcesList";
 export { SourceModal } from "./SourceModal";
+export { SuggestedQuestions } from "./SuggestedQuestions";
+export { FollowUpSuggestions } from "./FollowUpSuggestions";

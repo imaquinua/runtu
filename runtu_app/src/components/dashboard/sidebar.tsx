@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,7 +9,8 @@ import {
   Folder,
   Brain,
   MessageCircle,
-  FileText,
+  BarChart3,
+  Bell,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -18,6 +20,7 @@ import { logout } from "@/app/actions/auth";
 interface SidebarProps {
   businessName?: string;
   onClose?: () => void;
+  unreadSummaries?: number;
 }
 
 const navItems = [
@@ -26,12 +29,34 @@ const navItems = [
   { href: "/app/archivos", label: "Mis Archivos", icon: Folder },
   { href: "/app/conocimiento", label: "Conocimiento", icon: Brain },
   { href: "/app/chat", label: "Chat", icon: MessageCircle },
-  { href: "/app/reportes", label: "Reportes", icon: FileText },
+  { href: "/app/resumenes", label: "Resúmenes", icon: BarChart3 },
+  { href: "/app/alertas", label: "Alertas", icon: Bell },
   { href: "/app/configuracion", label: "Configuración", icon: Settings },
 ];
 
-export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) {
+export function Sidebar({ businessName = "Mi Negocio", onClose, unreadSummaries: propUnread }: SidebarProps) {
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(propUnread || 0);
+
+  // Fetch unread count on mount if not provided
+  useEffect(() => {
+    if (propUnread !== undefined) {
+      setUnreadCount(propUnread);
+      return;
+    }
+
+    // Fetch unread summaries count
+    fetch("/api/summaries?unreadOnly=true&limit=1")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.total !== undefined) {
+          setUnreadCount(data.total);
+        }
+      })
+      .catch(() => {
+        // Silent fail
+      });
+  }, [propUnread, pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -50,6 +75,7 @@ export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) 
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
+          const showBadge = item.href === "/app/resumenes" && unreadCount > 0;
 
           return (
             <Link
@@ -68,7 +94,12 @@ export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) 
                 }`}
               />
               {item.label}
-              {isActive && (
+              {showBadge && (
+                <span className="ml-auto px-1.5 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full min-w-[20px] text-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+              {isActive && !showBadge && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
               )}
             </Link>

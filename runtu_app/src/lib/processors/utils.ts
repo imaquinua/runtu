@@ -28,7 +28,7 @@ export async function downloadFile(
   const supabase = await createClient();
 
   const { data, error } = await supabase.storage
-    .from("uploads")
+    .from("business-files")
     .download(filePath);
 
   if (error || !data) {
@@ -67,7 +67,7 @@ export async function downloadFileAsBase64(
 export async function getPublicUrl(filePath: string): Promise<string> {
   const supabase = await createClient();
 
-  const { data } = supabase.storage.from("uploads").getPublicUrl(filePath);
+  const { data } = supabase.storage.from("business-files").getPublicUrl(filePath);
 
   return data.publicUrl;
 }

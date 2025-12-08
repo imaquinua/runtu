@@ -56,7 +56,6 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
         <Header
           title={pageTitle}
           onMenuClick={() => setMobileNavOpen(true)}
-          notificationCount={0}
         />
 
         {/* Page content - extra padding bottom for mobile nav */}

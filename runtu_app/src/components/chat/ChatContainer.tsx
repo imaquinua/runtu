@@ -6,6 +6,7 @@ import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import { StreamingMessage } from "./StreamingMessage";
 import { EmptyChat } from "./EmptyChat";
+import { FollowUpSuggestions } from "./FollowUpSuggestions";
 
 interface ChatContainerProps {
   messages: Message[];
@@ -13,6 +14,8 @@ interface ChatContainerProps {
   isStreaming?: boolean;
   streamingText?: string;
   onSuggestionClick: (suggestion: string) => void;
+  followUpSuggestions?: string[];
+  isLoadingFollowUps?: boolean;
 }
 
 export function ChatContainer({
@@ -21,6 +24,8 @@ export function ChatContainer({
   isStreaming = false,
   streamingText = "",
   onSuggestionClick,
+  followUpSuggestions = [],
+  isLoadingFollowUps = false,
 }: ChatContainerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,12 +33,20 @@ export function ChatContainer({
   // Auto-scroll to bottom when new messages arrive or streaming updates
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading, isStreaming, streamingText]);
+  }, [messages, isLoading, isStreaming, streamingText, followUpSuggestions]);
 
   // Empty state
   if (messages.length === 0 && !isLoading && !isStreaming) {
     return <EmptyChat onSuggestionClick={onSuggestionClick} />;
   }
+
+  // Check if last message is from assistant
+  const lastMessage = messages[messages.length - 1];
+  const showFollowUps =
+    !isLoading &&
+    !isStreaming &&
+    lastMessage?.role === "assistant" &&
+    (followUpSuggestions.length > 0 || isLoadingFollowUps);
 
   return (
     <div
@@ -48,6 +61,15 @@ export function ChatContainer({
             isLast={index === messages.length - 1 && !isLoading && !isStreaming}
           />
         ))}
+
+        {/* Follow-up suggestions after assistant response */}
+        {showFollowUps && (
+          <FollowUpSuggestions
+            suggestions={followUpSuggestions}
+            onSelect={onSuggestionClick}
+            isLoading={isLoadingFollowUps}
+          />
+        )}
 
         {/* Streaming message */}
         {isStreaming && streamingText && (

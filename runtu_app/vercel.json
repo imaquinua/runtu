@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-summary",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-summary",
+      "schedule": "0 14 * * 1"
+    },
+    {
+      "path": "/api/cron/monthly-summary",
+      "schedule": "0 15 1 * *"
+    },
+    {
+      "path": "/api/cron/alerts",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}

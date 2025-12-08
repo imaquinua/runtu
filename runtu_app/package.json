@@ -19,6 +19,7 @@
     "ai": "^5.0.108",
     "clsx": "^2.1.1",
     "lucide-react": "^0.556.0",
+    "marked": "^17.0.1",
     "next": "16.0.7",
     "pdf-parse": "^2.4.5",
     "react": "19.2.0",
@@ -26,6 +27,7 @@
     "react-dropzone": "^14.3.8",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
+    "uuid": "^13.0.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -33,6 +35,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",

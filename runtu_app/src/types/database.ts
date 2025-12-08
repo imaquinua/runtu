@@ -224,6 +224,174 @@ export interface Database {
           }
         ];
       };
+      summaries: {
+        Row: {
+          id: string;
+          business_id: string;
+          type: "daily" | "weekly" | "monthly";
+          period_start: string;
+          period_end: string;
+          content: string;
+          highlights: Json;
+          metrics: Json;
+          chunks_analyzed: number;
+          model_used: string | null;
+          tokens_used: number | null;
+          generated_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          type: "daily" | "weekly" | "monthly";
+          period_start: string;
+          period_end: string;
+          content: string;
+          highlights?: Json;
+          metrics?: Json;
+          chunks_analyzed?: number;
+          model_used?: string | null;
+          tokens_used?: number | null;
+          generated_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          type?: "daily" | "weekly" | "monthly";
+          period_start?: string;
+          period_end?: string;
+          content?: string;
+          highlights?: Json;
+          metrics?: Json;
+          chunks_analyzed?: number;
+          model_used?: string | null;
+          tokens_used?: number | null;
+          generated_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "summaries_business_id_fkey";
+            columns: ["business_id"];
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      alerts: {
+        Row: {
+          id: string;
+          business_id: string;
+          type: "inactivity" | "anomaly" | "reminder" | "insight" | "milestone" | "tip";
+          priority: "low" | "medium" | "high";
+          title: string;
+          message: string;
+          action_url: string | null;
+          action_label: string | null;
+          metadata: Json;
+          seen_at: string | null;
+          dismissed_at: string | null;
+          created_at: string;
+          expires_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          type: "inactivity" | "anomaly" | "reminder" | "insight" | "milestone" | "tip";
+          priority: "low" | "medium" | "high";
+          title: string;
+          message: string;
+          action_url?: string | null;
+          action_label?: string | null;
+          metadata?: Json;
+          seen_at?: string | null;
+          dismissed_at?: string | null;
+          created_at?: string;
+          expires_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          type?: "inactivity" | "anomaly" | "reminder" | "insight" | "milestone" | "tip";
+          priority?: "low" | "medium" | "high";
+          title?: string;
+          message?: string;
+          action_url?: string | null;
+          action_label?: string | null;
+          metadata?: Json;
+          seen_at?: string | null;
+          dismissed_at?: string | null;
+          created_at?: string;
+          expires_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "alerts_business_id_fkey";
+            columns: ["business_id"];
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      reports: {
+        Row: {
+          id: string;
+          business_id: string;
+          type: "executive" | "detailed" | "financial" | "operational" | "custom";
+          period: "last_week" | "last_month" | "last_quarter" | "last_year" | "custom";
+          custom_period_start: string | null;
+          custom_period_end: string | null;
+          title: string;
+          content: string;
+          html_content: string | null;
+          metrics: Json;
+          config: Json;
+          generated_at: string;
+          expires_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          type: "executive" | "detailed" | "financial" | "operational" | "custom";
+          period: "last_week" | "last_month" | "last_quarter" | "last_year" | "custom";
+          custom_period_start?: string | null;
+          custom_period_end?: string | null;
+          title: string;
+          content: string;
+          html_content?: string | null;
+          metrics?: Json;
+          config?: Json;
+          generated_at?: string;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          type?: "executive" | "detailed" | "financial" | "operational" | "custom";
+          period?: "last_week" | "last_month" | "last_quarter" | "last_year" | "custom";
+          custom_period_start?: string | null;
+          custom_period_end?: string | null;
+          title?: string;
+          content?: string;
+          html_content?: string | null;
+          metrics?: Json;
+          config?: Json;
+          generated_at?: string;
+          expires_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reports_business_id_fkey";
+            columns: ["business_id"];
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {};
     Functions: {
@@ -269,6 +437,24 @@ export interface Database {
           source_context: string | null;
           metadata: KnowledgeChunkMetadata;
           relevance: number;
+        }[];
+      };
+      cleanup_expired_reports: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      get_recent_reports: {
+        Args: {
+          p_business_id: string;
+          p_limit?: number;
+        };
+        Returns: {
+          id: string;
+          type: string;
+          period: string;
+          title: string;
+          preview: string;
+          generated_at: string;
         }[];
       };
     };

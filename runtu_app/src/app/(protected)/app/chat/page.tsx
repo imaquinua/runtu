@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Square } from "lucide-react";
 import {
@@ -19,6 +19,9 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
+  const [followUpSuggestions, setFollowUpSuggestions] = useState<string[]>([]);
+  const [isLoadingFollowUps, setIsLoadingFollowUps] = useState(false);
+  const lastMessageIdRef = useRef<string | null>(null);
 
   const {
     conversation,
@@ -29,7 +32,6 @@ export default function ChatPage() {
     error,
     sendMessage,
     cancelStream,
-    loadConversation,
     clearChat,
   } = usePersistentChat({
     conversationId,
@@ -68,10 +70,63 @@ export default function ChatPage() {
     fetchConversations();
   }, []);
 
+  // Generar follow-ups cuando hay nueva respuesta del asistente
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    const secondLastMessage = messages[messages.length - 2];
+
+    // Solo generar si:
+    // 1. Hay al menos 2 mensajes
+    // 2. El último es del asistente
+    // 3. Es un mensaje nuevo (diferente ID del anterior)
+    // 4. No estamos en streaming o loading
+    if (
+      messages.length >= 2 &&
+      lastMessage?.role === "assistant" &&
+      secondLastMessage?.role === "user" &&
+      lastMessage.id !== lastMessageIdRef.current &&
+      !isStreaming &&
+      !isLoading
+    ) {
+      lastMessageIdRef.current = lastMessage.id;
+      generateFollowUps(secondLastMessage.content, lastMessage.content);
+    }
+  }, [messages, isStreaming, isLoading]);
+
+  // Limpiar follow-ups cuando cambia de conversación
+  useEffect(() => {
+    setFollowUpSuggestions([]);
+    lastMessageIdRef.current = null;
+  }, [conversationId]);
+
+  async function generateFollowUps(userMessage: string, assistantResponse: string) {
+    setIsLoadingFollowUps(true);
+    try {
+      const response = await fetch("/api/chat/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lastUserMessage: userMessage,
+          lastAssistantResponse: assistantResponse,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFollowUpSuggestions(data.suggestions || []);
+      }
+    } catch (err) {
+      console.error("Error generating follow-ups:", err);
+    } finally {
+      setIsLoadingFollowUps(false);
+    }
+  }
+
   const handleSend = useCallback(async () => {
     if (!input.trim() || isStreaming || isLoading) return;
     const text = input;
     setInput("");
+    setFollowUpSuggestions([]); // Limpiar sugerencias al enviar
     await sendMessage(text);
   }, [input, isStreaming, isLoading, sendMessage]);
 
@@ -136,6 +191,8 @@ export default function ChatPage() {
             isStreaming={isStreaming}
             streamingText={streamingText}
             onSuggestionClick={handleSuggestionClick}
+            followUpSuggestions={followUpSuggestions}
+            isLoadingFollowUps={isLoadingFollowUps}
           />
         </div>
 

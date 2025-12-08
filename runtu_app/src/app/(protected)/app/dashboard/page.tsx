@@ -1,6 +1,7 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, Package, BarChart3, MessageCircle } from "lucide-react";
+import { DashboardAlertBanner } from "@/components/alerts";
 
 export default async function DashboardPage() {
   let businessName = "tu negocio";
@@ -29,6 +30,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* High Priority Alerts Banner */}
+      <DashboardAlertBanner />
+
       {/* Welcome Section */}
       <div>
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900">

@@ -1,19 +1,21 @@
 "use client";
 
 import { Sparkles, MessageCircle } from "lucide-react";
+import { SuggestedQuestions } from "./SuggestedQuestions";
 
 interface EmptyChatProps {
   onSuggestionClick: (suggestion: string) => void;
+  hasRecentUploads?: boolean;
 }
 
-const suggestions = [
-  "¿Cómo me fue esta semana?",
-  "¿Cuáles son mis principales gastos?",
-  "Resume mis últimas ventas",
-  "¿Qué debería mejorar?",
-];
+export function EmptyChat({ onSuggestionClick, hasRecentUploads }: EmptyChatProps) {
+  // Determinar contexto para sugerencias inteligentes
+  const now = new Date();
+  const isMonday = now.getDay() === 1;
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const isEndOfMonth = dayOfMonth >= daysInMonth - 2;
 
-export function EmptyChat({ onSuggestionClick }: EmptyChatProps) {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center px-4">
       {/* Icon */}
@@ -33,25 +35,13 @@ export function EmptyChat({ onSuggestionClick }: EmptyChatProps) {
         compartes para darte respuestas personalizadas.
       </p>
 
-      {/* Suggestions */}
-      <div className="w-full max-w-md">
-        <p className="text-xs text-slate-500 mb-3 uppercase tracking-wide">
-          Prueba preguntando
-        </p>
-        <div className="flex flex-col gap-2">
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => onSuggestionClick(suggestion)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-800/50 border border-slate-700/50 text-sm text-slate-300 hover:bg-slate-700/50 hover:border-indigo-500/30 hover:text-white transition-all text-left group"
-            >
-              <span className="opacity-70 group-hover:opacity-100 transition-opacity">
-                {suggestion}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Smart Suggestions */}
+      <SuggestedQuestions
+        onSelect={onSuggestionClick}
+        hasRecentUploads={hasRecentUploads}
+        isMonday={isMonday}
+        isEndOfMonth={isEndOfMonth}
+      />
     </div>
   );
 }
