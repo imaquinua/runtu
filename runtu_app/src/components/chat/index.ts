@@ -5,3 +5,4 @@ export { TypingIndicator } from "./TypingIndicator";
 export { StreamingMessage } from "./StreamingMessage";
 export { EmptyChat } from "./EmptyChat";
 export { NoKnowledge } from "./NoKnowledge";
+export { ConversationSidebar } from "./ConversationSidebar";

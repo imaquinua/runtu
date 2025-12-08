@@ -1,14 +1,27 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Square } from "lucide-react";
-import { ChatContainer, ChatInput } from "@/components/chat";
-import { useStreamingChat } from "@/hooks/useStreamingChat";
+import {
+  ChatContainer,
+  ChatInput,
+  ConversationSidebar,
+} from "@/components/chat";
+import { usePersistentChat } from "@/hooks/usePersistentChat";
+import type { Conversation } from "@/lib/db/conversations";
 
 export default function ChatPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const conversationId = searchParams.get("id") || undefined;
+
   const [input, setInput] = useState("");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
 
   const {
+    conversation,
     messages,
     streamingText,
     isStreaming,
@@ -16,9 +29,44 @@ export default function ChatPage() {
     error,
     sendMessage,
     cancelStream,
-  } = useStreamingChat({
-    endpoint: "/api/chat/stream-manual",
+    loadConversation,
+    clearChat,
+  } = usePersistentChat({
+    conversationId,
+    onConversationCreated: (newConv) => {
+      // Agregar nueva conversación a la lista
+      setConversations((prev) => [newConv, ...prev]);
+      // Actualizar URL
+      router.push(`/app/chat?id=${newConv.id}`, { scroll: false });
+    },
+    onTitleGenerated: (title) => {
+      // Actualizar título en la lista
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === conversation?.id ? { ...c, title } : c
+        )
+      );
+    },
   });
+
+  // Cargar lista de conversaciones
+  useEffect(() => {
+    async function fetchConversations() {
+      try {
+        const response = await fetch("/api/conversations");
+        const data = await response.json();
+        if (response.ok) {
+          setConversations(data.conversations || []);
+        }
+      } catch (err) {
+        console.error("Error loading conversations:", err);
+      } finally {
+        setLoadingConversations(false);
+      }
+    }
+
+    fetchConversations();
+  }, []);
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || isStreaming || isLoading) return;
@@ -31,51 +79,99 @@ export default function ChatPage() {
     setInput(suggestion);
   }, []);
 
+  const handleSelectConversation = useCallback(
+    (id: string) => {
+      router.push(`/app/chat?id=${id}`, { scroll: false });
+    },
+    [router]
+  );
+
+  const handleNewConversation = useCallback(() => {
+    clearChat();
+    router.push("/app/chat", { scroll: false });
+  }, [clearChat, router]);
+
+  const handleDeleteConversation = useCallback(
+    async (id: string) => {
+      try {
+        const response = await fetch(`/api/conversations/${id}`, {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          setConversations((prev) => prev.filter((c) => c.id !== id));
+
+          // Si es la conversación actual, limpiar
+          if (id === conversation?.id) {
+            clearChat();
+            router.push("/app/chat", { scroll: false });
+          }
+        }
+      } catch (err) {
+        console.error("Error deleting conversation:", err);
+      }
+    },
+    [conversation?.id, clearChat, router]
+  );
+
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-5rem)] -m-4 md:-m-6 lg:-m-8">
-      {/* Messages Area */}
-      <div className="flex-1 overflow-hidden">
-        <ChatContainer
-          messages={messages}
-          isLoading={isLoading}
-          isStreaming={isStreaming}
-          streamingText={streamingText}
-          onSuggestionClick={handleSuggestionClick}
-        />
-      </div>
+    <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-5rem)] -m-4 md:-m-6 lg:-m-8">
+      {/* Sidebar */}
+      <ConversationSidebar
+        conversations={conversations}
+        currentId={conversation?.id}
+        onSelect={handleSelectConversation}
+        onNew={handleNewConversation}
+        onDelete={handleDeleteConversation}
+        isLoading={loadingConversations}
+      />
 
-      {/* Input Area - Fixed at bottom */}
-      <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-sm px-4 md:px-6 lg:px-8 py-4">
-        <div className="max-w-3xl mx-auto">
-          {/* Cancel button during streaming */}
-          {isStreaming && (
-            <div className="flex justify-center mb-3">
-              <button
-                onClick={cancelStream}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
-              >
-                <Square className="w-4 h-4" />
-                Detener
-              </button>
-            </div>
-          )}
-
-          <ChatInput
-            value={input}
-            onChange={setInput}
-            onSend={handleSend}
-            disabled={isStreaming || isLoading}
+      {/* Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Messages Area */}
+        <div className="flex-1 overflow-hidden">
+          <ChatContainer
+            messages={messages}
+            isLoading={isLoading}
+            isStreaming={isStreaming}
+            streamingText={streamingText}
+            onSuggestionClick={handleSuggestionClick}
           />
+        </div>
 
-          <p className="text-xs text-slate-500 mt-2 text-center">
-            {error ? (
-              <span className="text-red-400">{error}</span>
-            ) : isStreaming ? (
-              <span className="text-indigo-400">Generando respuesta...</span>
-            ) : (
-              "Runtu usa tu información para darte respuestas personalizadas"
+        {/* Input Area */}
+        <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-sm px-4 md:px-6 lg:px-8 py-4">
+          <div className="max-w-3xl mx-auto">
+            {/* Cancel button during streaming */}
+            {isStreaming && (
+              <div className="flex justify-center mb-3">
+                <button
+                  onClick={cancelStream}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+                >
+                  <Square className="w-4 h-4" />
+                  Detener
+                </button>
+              </div>
             )}
-          </p>
+
+            <ChatInput
+              value={input}
+              onChange={setInput}
+              onSend={handleSend}
+              disabled={isStreaming || isLoading}
+            />
+
+            <p className="text-xs text-slate-500 mt-2 text-center">
+              {error ? (
+                <span className="text-red-400">{error}</span>
+              ) : isStreaming ? (
+                <span className="text-indigo-400">Generando respuesta...</span>
+              ) : (
+                "Runtu usa tu información para darte respuestas personalizadas"
+              )}
+            </p>
+          </div>
         </div>
       </div>
     </div>

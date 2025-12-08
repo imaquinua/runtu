@@ -12,10 +12,12 @@ export interface Source {
 export interface Message {
   id: string;
   conversationId?: string;
+  conversation_id?: string;
   role: "user" | "assistant";
   content: string;
   sources?: Source[];
   createdAt: Date;
+  created_at?: string;
 }
 
 export interface Conversation {
