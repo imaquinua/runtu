@@ -1,24 +1,24 @@
 // ============================================
-// Chat Streaming API - Opción B: Manual
+// Chat Streaming API - Gemini
 // ============================================
-// POST /api/chat/stream-manual - Chat con streaming manual
+// POST /api/chat/stream-manual - Chat con streaming usando Gemini
 
 import { NextRequest } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { queryBusinessKnowledge } from "@/lib/rag";
 import { RUNTU_SYSTEM_PROMPT, NO_KNOWLEDGE_RESPONSE } from "@/lib/chat/types";
 
 // ============================================
-// Anthropic Client
+// Gemini Client
 // ============================================
 
-function getAnthropicClient(): Anthropic {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+function getGeminiClient(): GoogleGenerativeAI {
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY no configurada");
+    throw new Error("GEMINI_API_KEY no configurada");
   }
-  return new Anthropic({ apiKey });
+  return new GoogleGenerativeAI(apiKey);
 }
 
 // ============================================
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ error: "Servicio no disponible" }, 503);
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return jsonResponse({ error: "API key no configurada" }, 500);
     }
 
@@ -109,31 +109,72 @@ export async function POST(request: NextRequest) {
       ragResult.context?.context ?? ""
     );
 
-    // 8. Construir mensajes para Claude
-    const messages = buildMessages(body.history ?? [], message);
-
-    // 9. Crear stream con Anthropic SDK
-    const anthropic = getAnthropicClient();
-
-    const stream = anthropic.messages.stream({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: messages,
+    // 8. Configurar Gemini
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      generationConfig: {
+        maxOutputTokens: 1024,
+        temperature: 0.7,
+      },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+        },
+      ],
     });
 
-    // 10. Crear ReadableStream
+    // 9. Construir historial para Gemini
+    const geminiHistory = buildGeminiHistory(body.history ?? []);
+
+    // 10. Iniciar chat con contexto
+    const chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [{ text: "Por favor actúa según las siguientes instrucciones del sistema." }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "Entendido. Seguiré las instrucciones." }],
+        },
+        {
+          role: "user",
+          parts: [{ text: systemPrompt }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "Perfecto, estoy listo para ayudar con información del negocio." }],
+        },
+        ...geminiHistory,
+      ],
+    });
+
+    // 11. Crear stream con Gemini
+    const result = await chat.sendMessageStream(message);
+
+    // 12. Crear ReadableStream para SSE
     const encoder = new TextEncoder();
 
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              const text = event.delta.text;
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
               // Formato SSE
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
             }
@@ -152,7 +193,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 11. Retornar respuesta SSE
+    // 13. Retornar respuesta SSE
     return new Response(readable, {
       headers: {
         "Content-Type": "text/event-stream",
@@ -162,7 +203,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("[API/Chat/Stream-Manual] Error:", error);
+    console.error("[API/Chat/Stream] Error:", error);
     return jsonResponse({
       error: "Error procesando el mensaje",
       details: error instanceof Error ? error.message : "Unknown",
@@ -197,26 +238,18 @@ ${context}
 Responde la siguiente pregunta del usuario basándote en la información anterior.`;
 }
 
-function buildMessages(
-  history: ChatMessage[],
-  currentMessage: string
-): Array<{ role: "user" | "assistant"; content: string }> {
-  const messages: Array<{ role: "user" | "assistant"; content: string }> = [];
-
-  // Agregar historial (últimos 10 mensajes)
-  const recentHistory = history.slice(-10);
-  for (const msg of recentHistory) {
-    messages.push({
-      role: msg.role,
-      content: msg.content,
-    });
+function buildGeminiHistory(
+  history: ChatMessage[]
+): Array<{ role: "user" | "model"; parts: Array<{ text: string }> }> {
+  if (history.length === 0) {
+    return [];
   }
 
-  // Agregar mensaje actual
-  messages.push({
-    role: "user",
-    content: currentMessage,
-  });
+  // Tomar solo los últimos 10 mensajes
+  const recentHistory = history.slice(-10);
 
-  return messages;
+  return recentHistory.map((msg) => ({
+    role: msg.role === "user" ? "user" : "model",
+    parts: [{ text: msg.content }],
+  }));
 }
