@@ -4,29 +4,34 @@ import { useRef, useEffect } from "react";
 import type { Message } from "@/types/chat";
 import { MessageBubble } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
+import { StreamingMessage } from "./StreamingMessage";
 import { EmptyChat } from "./EmptyChat";
 
 interface ChatContainerProps {
   messages: Message[];
   isLoading: boolean;
+  isStreaming?: boolean;
+  streamingText?: string;
   onSuggestionClick: (suggestion: string) => void;
 }
 
 export function ChatContainer({
   messages,
   isLoading,
+  isStreaming = false,
+  streamingText = "",
   onSuggestionClick,
 }: ChatContainerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive or streaming updates
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isLoading]);
+  }, [messages, isLoading, isStreaming, streamingText]);
 
   // Empty state
-  if (messages.length === 0 && !isLoading) {
+  if (messages.length === 0 && !isLoading && !isStreaming) {
     return <EmptyChat onSuggestionClick={onSuggestionClick} />;
   }
 
@@ -40,12 +45,17 @@ export function ChatContainer({
           <MessageBubble
             key={message.id}
             message={message}
-            isLast={index === messages.length - 1 && !isLoading}
+            isLast={index === messages.length - 1 && !isLoading && !isStreaming}
           />
         ))}
 
-        {/* Loading indicator */}
-        {isLoading && <TypingIndicator />}
+        {/* Streaming message */}
+        {isStreaming && streamingText && (
+          <StreamingMessage content={streamingText} isStreaming={true} />
+        )}
+
+        {/* Loading indicator (before streaming starts) */}
+        {isLoading && !isStreaming && <TypingIndicator />}
 
         {/* Scroll anchor */}
         <div ref={messagesEndRef} />

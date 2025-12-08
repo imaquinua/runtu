@@ -1,87 +1,31 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { Message, Source } from "@/types/chat";
+import { Square } from "lucide-react";
 import { ChatContainer, ChatInput } from "@/components/chat";
-
-interface ChatHistoryMessage {
-  role: "user" | "assistant";
-  content: string;
-}
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const {
+    messages,
+    streamingText,
+    isStreaming,
+    isLoading,
+    error,
+    sendMessage,
+    cancelStream,
+  } = useStreamingChat({
+    endpoint: "/api/chat/stream-manual",
+  });
 
   const handleSend = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: input.trim(),
-      createdAt: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    if (!input.trim() || isStreaming || isLoading) return;
+    const text = input;
     setInput("");
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Preparar historial para la API (últimos 10 mensajes)
-      const history: ChatHistoryMessage[] = messages.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          history,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al procesar el mensaje");
-      }
-
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: data.content,
-        sources: data.sources as Source[],
-        createdAt: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error desconocido";
-
-      setError(errorMessage);
-
-      // Agregar mensaje de error como respuesta del asistente
-      const errorAssistantMessage: Message = {
-        id: `error-${Date.now()}`,
-        role: "assistant",
-        content: `Lo siento, tuve un problema: ${errorMessage}\n\n¿Puedes intentar de nuevo?`,
-        createdAt: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorAssistantMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, isLoading, messages]);
+    await sendMessage(text);
+  }, [input, isStreaming, isLoading, sendMessage]);
 
   const handleSuggestionClick = useCallback((suggestion: string) => {
     setInput(suggestion);
@@ -94,6 +38,8 @@ export default function ChatPage() {
         <ChatContainer
           messages={messages}
           isLoading={isLoading}
+          isStreaming={isStreaming}
+          streamingText={streamingText}
           onSuggestionClick={handleSuggestionClick}
         />
       </div>
@@ -101,15 +47,31 @@ export default function ChatPage() {
       {/* Input Area - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-sm px-4 md:px-6 lg:px-8 py-4">
         <div className="max-w-3xl mx-auto">
+          {/* Cancel button during streaming */}
+          {isStreaming && (
+            <div className="flex justify-center mb-3">
+              <button
+                onClick={cancelStream}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors"
+              >
+                <Square className="w-4 h-4" />
+                Detener
+              </button>
+            </div>
+          )}
+
           <ChatInput
             value={input}
             onChange={setInput}
             onSend={handleSend}
-            disabled={isLoading}
+            disabled={isStreaming || isLoading}
           />
+
           <p className="text-xs text-slate-500 mt-2 text-center">
             {error ? (
               <span className="text-red-400">{error}</span>
+            ) : isStreaming ? (
+              <span className="text-indigo-400">Generando respuesta...</span>
             ) : (
               "Runtu usa tu información para darte respuestas personalizadas"
             )}
