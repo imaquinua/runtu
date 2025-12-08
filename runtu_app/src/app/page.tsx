@@ -35,7 +35,7 @@ export default function Home() {
               href="/register"
               className="text-sm bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-semibold px-4 py-2 rounded-lg transition-colors"
             >
-              Empezar gratis
+              Solicitar acceso
             </Link>
           </div>
         </div>
@@ -71,12 +71,12 @@ export default function Home() {
               href="/register"
               className="w-full sm:w-auto bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold text-lg px-8 py-4 rounded-xl transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] flex items-center justify-center gap-2"
             >
-              Empezar gratis
+              Quiero mi copiloto
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </Link>
-            <span className="text-white/40 text-sm">Sin tarjeta de crédito</span>
+            <span className="text-white/40 text-sm">Acceso anticipado limitado</span>
           </div>
 
           {/* Trust badges */}
@@ -178,22 +178,23 @@ export default function Home() {
             <RuntuLogo variant="header" size="md" />
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-            El huevo ya está listo
+            Tu negocio no puede seguir esperando
           </h2>
-          <p className="text-lg text-white/60 mb-8 italic">
-            "Runtu es el huevo. Tu negocio es lo que nace de él."
+          <p className="text-lg text-white/60 mb-8">
+            Cada día sin claridad es un día de oportunidades perdidas.
+            <span className="block mt-2 text-white/80">¿Estás listo para ver tu negocio con otros ojos?</span>
           </p>
           <Link
             href="/register"
             className="inline-flex items-center gap-2 bg-[#fbbf24] hover:bg-[#f59e0b] text-gray-900 font-bold text-lg px-10 py-4 rounded-xl transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(251,191,36,0.4)]"
           >
-            Crear mi cuenta gratis
+            Solicitar mi acceso
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </Link>
           <p className="text-white/40 text-sm mt-4">
-            Empieza en 30 segundos. Sin tarjeta de crédito.
+            Plazas limitadas para primeros usuarios
           </p>
         </div>
       </section>
