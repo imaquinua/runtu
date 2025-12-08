@@ -15,10 +15,19 @@ export const metadata: Metadata = {
   description: "El primer copiloto de negocios diseñado desde y para la realidad latinoamericana. Tu intuición por fin tiene un espejo que la valida, la cuestiona, la amplifica.",
   keywords: ["copiloto", "negocio", "emprendedor", "latinoamerica", "IA", "inteligencia artificial"],
   authors: [{ name: "Runtu" }],
+  icons: {
+    icon: [
+      { url: "/runtu-icon.svg", type: "image/svg+xml" },
+      { url: "/runtu_logo.png", type: "image/png" },
+    ],
+    shortcut: "/runtu-icon.svg",
+    apple: "/runtu_logo.png",
+  },
   openGraph: {
     title: "Runtu - Tu copiloto de negocio",
     description: "El primer copiloto de negocios diseñado desde y para la realidad latinoamericana.",
     type: "website",
+    images: ["/runtu_logo.png"],
   },
 };
 
