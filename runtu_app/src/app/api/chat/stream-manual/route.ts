@@ -103,19 +103,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 7. Extraer fuentes únicas de los resultados RAG
-    const sources: SourceInfo[] = ragResult.results.map((r, index) => ({
-      id: r.id,
-      name: r.source.filename || r.source.context || `Fuente ${index + 1}`,
-      type: r.source.type,
-      preview: r.snippet.slice(0, 100),
-    }));
+    // 7. Extraer fuentes únicas de los resultados RAG (deduplicadas por upload)
+    const sourcesMap = new Map<string, SourceInfo>();
+    for (const r of ragResult.results) {
+      const key = r.source.filename || r.id;
+      if (!sourcesMap.has(key)) {
+        sourcesMap.set(key, {
+          id: r.id,
+          name: r.source.filename || r.source.context || "Documento",
+          type: r.source.type,
+          preview: r.snippet.slice(0, 150),
+          uploadId: r.metadata?.uploadId as string | undefined,
+          confidence: r.score,
+          fullContent: r.content,
+        });
+      }
+    }
+    const sources = Array.from(sourcesMap.values()).slice(0, 5);
 
-    // 8. Construir prompt con contexto y fuentes
+    // 8. Construir prompt con contexto
     const systemPrompt = buildSystemPrompt(
       business.name,
-      ragResult.context?.context ?? "",
-      sources
+      ragResult.context?.context ?? ""
     );
 
     // 8. Configurar Gemini
@@ -239,18 +248,15 @@ interface SourceInfo {
   name: string;
   type: string;
   preview: string;
+  uploadId?: string;
+  confidence?: number;
+  fullContent?: string;
 }
 
-function buildSystemPrompt(businessName: string, context: string, sources: SourceInfo[]): string {
-  // Agregar índices de fuentes al contexto
-  const sourcesReference = sources.length > 0
-    ? `\n\nFUENTES DISPONIBLES:\n${sources.map((s, i) => `[${i + 1}] ${s.name} (${s.type})`).join('\n')}`
-    : '';
-
+function buildSystemPrompt(businessName: string, context: string): string {
   return `${RUNTU_SYSTEM_PROMPT}
 
 NEGOCIO: ${businessName}
-${sourcesReference}
 
 ---
 
@@ -260,7 +266,7 @@ ${context}
 
 ---
 
-Responde la siguiente pregunta del usuario basándote en la información anterior. Cita las fuentes usando [[1]], [[2]], etc.`;
+Responde la siguiente pregunta del usuario basándote en la información anterior.`;
 }
 
 function buildGeminiHistory(

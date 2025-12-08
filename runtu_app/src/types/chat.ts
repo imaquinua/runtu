@@ -7,6 +7,9 @@ export interface Source {
   name: string;
   type: string;
   preview: string;
+  uploadId?: string;
+  confidence?: number; // 0-1 similarity score
+  fullContent?: string; // Para el modal
 }
 
 export interface Message {

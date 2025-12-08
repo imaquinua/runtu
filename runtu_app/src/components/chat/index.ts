@@ -6,3 +6,5 @@ export { StreamingMessage } from "./StreamingMessage";
 export { EmptyChat } from "./EmptyChat";
 export { NoKnowledge } from "./NoKnowledge";
 export { ConversationSidebar } from "./ConversationSidebar";
+export { SourcesList } from "./SourcesList";
+export { SourceModal } from "./SourceModal";
