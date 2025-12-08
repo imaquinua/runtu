@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { Header } from "./header";
+import { BottomNav } from "@/components/navigation";
+import { UploadModal } from "@/components/upload";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -15,6 +17,7 @@ const pageTitles: Record<string, string> = {
   "/app/inicio": "Inicio",
   "/app/dashboard": "Dashboard",
   "/app/archivos": "Mis Archivos",
+  "/app/conocimiento": "Conocimiento",
   "/app/chat": "Chat con Runtu",
   "/app/reportes": "Reportes",
   "/app/configuracion": "Configuración",
@@ -22,6 +25,7 @@ const pageTitles: Record<string, string> = {
 
 export function DashboardShell({ children, businessName }: DashboardShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const pathname = usePathname();
 
   const pageTitle = pageTitles[pathname] || "Runtu";
@@ -55,11 +59,23 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
           notificationCount={0}
         />
 
-        {/* Page content */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        {/* Page content - extra padding bottom for mobile nav */}
+        <main className="flex-1 p-4 pb-24 md:p-6 md:pb-6 lg:p-8 lg:pb-8">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <BottomNav
+        onUploadClick={() => setShowUploadModal(true)}
+        onMenuClick={() => setMobileNavOpen(true)}
+      />
+
+      {/* Upload Modal */}
+      <UploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+      />
     </div>
   );
 }

@@ -1,10 +1,58 @@
 @import "tailwindcss";
 
+/* ============================================
+   CSS VARIABLES - DARK MODE READY
+   ============================================ */
 :root {
+  /* Background colors */
   --background: #020617;
+  --background-secondary: #0f172a;
+  --background-tertiary: #1e293b;
+
+  /* Foreground colors */
   --foreground: #ffffff;
+  --foreground-muted: rgba(255, 255, 255, 0.6);
+  --foreground-subtle: rgba(255, 255, 255, 0.4);
+
+  /* Accent colors */
   --accent: #fbbf24;
   --accent-dark: #f59e0b;
+  --accent-indigo: #6366f1;
+  --accent-purple: #a855f7;
+
+  /* Border colors */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.2);
+
+  /* Focus ring */
+  --ring-color: rgba(99, 102, 241, 0.5);
+  --ring-offset: 2px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-normal: 200ms;
+  --transition-slow: 300ms;
+
+  /* Safe area for mobile */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Dark mode is default, but prepare for light mode toggle */
+[data-theme="light"] {
+  --background: #f8fafc;
+  --background-secondary: #ffffff;
+  --background-tertiary: #f1f5f9;
+  --foreground: #0f172a;
+  --foreground-muted: rgba(15, 23, 42, 0.7);
+  --foreground-subtle: rgba(15, 23, 42, 0.5);
+  --border: rgba(15, 23, 42, 0.1);
+  --border-hover: rgba(15, 23, 42, 0.2);
 }
 
 @theme inline {
@@ -19,6 +67,92 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-montserrat), sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   SAFE AREA FOR MOBILE
+   ============================================ */
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ============================================
+   FOCUS STATES - ACCESSIBILITY
+   ============================================ */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent-indigo);
+  outline-offset: var(--ring-offset);
+  border-radius: 4px;
+}
+
+/* Focus ring utility */
+.focus-ring {
+  transition: box-shadow var(--transition-fast) ease;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 var(--ring-offset) var(--background),
+              0 0 0 calc(var(--ring-offset) + 2px) var(--ring-color);
+}
+
+/* ============================================
+   INTERACTIVE ELEMENTS
+   ============================================ */
+
+/* Button base transitions */
+button, a, [role="button"] {
+  transition: all var(--transition-normal) ease;
+}
+
+/* Active press effect for touch */
+.touch-feedback {
+  transition: transform var(--transition-fast) ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+}
+
+/* Card hover lift */
+.card-hover {
+  transition: transform var(--transition-normal) ease,
+              box-shadow var(--transition-normal) ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Link underline animation */
+.link-underline {
+  position: relative;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-indigo);
+  transition: width var(--transition-normal) ease;
+}
+
+.link-underline:hover::after {
+  width: 100%;
 }
 
 /* Logo Animations */
@@ -132,6 +266,221 @@ body {
   text-shadow: 0 0 40px rgba(251, 191, 36, 0.3);
 }
 
+/* ============================================
+   MODAL & OVERLAY ANIMATIONS
+   ============================================ */
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modal-exit {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+}
+
+@keyframes backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.animate-modal-enter {
+  animation: modal-enter var(--transition-slow) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-modal-exit {
+  animation: modal-exit var(--transition-normal) ease-in forwards;
+}
+
+.animate-backdrop-enter {
+  animation: backdrop-enter var(--transition-normal) ease;
+}
+
+.animate-slide-up {
+  animation: slide-up var(--transition-slow) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-down {
+  animation: slide-down var(--transition-normal) ease-in forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--transition-slow) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-out-left {
+  animation: slide-out-left var(--transition-normal) ease-in forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease;
+}
+
+/* ============================================
+   SKELETON LOADING
+   ============================================ */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    scrollbar-width: none;
+  }
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  padding: 6px 10px;
+  background: var(--background-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--foreground);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast) ease;
+  z-index: 100;
+}
+
+.tooltip:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+/* ============================================
+   PULL TO REFRESH (mobile)
+   ============================================ */
+.pull-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 100;
+  transition: transform var(--transition-normal) ease;
+}
+
+.pull-indicator.pulling {
+  transform: translateX(-50%) translateY(20px);
+}
+
+.pull-indicator.refreshing {
+  transform: translateX(-50%) translateY(20px);
+}
+
 /* Accessibility - Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-logo-reveal,
@@ -160,4 +509,59 @@ body {
 
 .animate-pulse-glow {
   will-change: opacity, transform;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%);
+}
+
+.gradient-glow {
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+}
+
+/* Text truncate with fade */
+.truncate-fade {
+  position: relative;
+  overflow: hidden;
+}
+
+.truncate-fade::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, var(--background));
+}
+
+/* Hide on print */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Selection color */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+  color: var(--foreground);
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
 }

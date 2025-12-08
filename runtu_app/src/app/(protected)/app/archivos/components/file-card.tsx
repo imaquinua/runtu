@@ -2,11 +2,13 @@
 
 import { FileText, Table, Image, Mic, Video, MoreVertical, Trash2, Download, Eye } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { FileItem, FileType, FileStatus } from "../page";
 
 interface FileCardProps {
   file: FileItem;
   onDelete: (file: FileItem) => void;
+  onDownload?: (file: FileItem) => void;
 }
 
 function getFileIcon(type: FileType) {
@@ -68,11 +70,16 @@ function formatDate(date: Date): string {
   }
 }
 
-export function FileCard({ file, onDelete }: FileCardProps) {
+export function FileCard({ file, onDelete, onDownload }: FileCardProps) {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { icon: Icon, color, bg } = getFileIcon(file.type);
   const status = getStatusBadge(file.status);
+
+  const handleCardClick = () => {
+    router.push(`/app/archivos/${file.id}`);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -85,12 +92,15 @@ export function FileCard({ file, onDelete }: FileCardProps) {
   }, []);
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.07] transition-colors">
+    <div
+      className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/[0.07] transition-colors cursor-pointer group"
+      onClick={handleCardClick}
+    >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className={`p-2.5 rounded-lg ${bg}`}>
           <Icon className={`w-6 h-6 ${color}`} />
         </div>
-        <div className="relative" ref={menuRef}>
+        <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="p-1.5 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
@@ -100,11 +110,23 @@ export function FileCard({ file, onDelete }: FileCardProps) {
 
           {menuOpen && (
             <div className="absolute right-0 top-full mt-1 w-40 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-10 overflow-hidden">
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  router.push(`/app/archivos/${file.id}`);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+              >
                 <Eye className="w-4 h-4" />
                 Ver detalles
               </button>
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDownload?.(file);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+              >
                 <Download className="w-4 h-4" />
                 Descargar
               </button>
@@ -123,7 +145,7 @@ export function FileCard({ file, onDelete }: FileCardProps) {
         </div>
       </div>
 
-      <h3 className="text-white font-medium truncate mb-1" title={file.name}>
+      <h3 className="text-white font-medium truncate mb-1 group-hover:text-indigo-400 transition-colors" title={file.name}>
         {file.name}
       </h3>
 

@@ -1,15 +1,16 @@
 "use client";
 
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, Loader2 } from "lucide-react";
 import type { FileItem } from "../page";
 
 interface DeleteModalProps {
   file: FileItem | null;
   onClose: () => void;
   onConfirm: () => void;
+  isDeleting?: boolean;
 }
 
-export function DeleteModal({ file, onClose, onConfirm }: DeleteModalProps) {
+export function DeleteModal({ file, onClose, onConfirm, isDeleting }: DeleteModalProps) {
   if (!file) return null;
 
   return (
@@ -58,15 +59,24 @@ export function DeleteModal({ file, onClose, onConfirm }: DeleteModalProps) {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 px-4 bg-white/5 hover:bg-white/10 text-white font-medium rounded-lg border border-white/10 transition-colors"
+            disabled={isDeleting}
+            className="flex-1 py-2.5 px-4 bg-white/5 hover:bg-white/10 text-white font-medium rounded-lg border border-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg transition-colors"
+            disabled={isDeleting}
+            className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Eliminar
+            {isDeleting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Eliminando...
+              </>
+            ) : (
+              "Eliminar"
+            )}
           </button>
         </div>
       </div>

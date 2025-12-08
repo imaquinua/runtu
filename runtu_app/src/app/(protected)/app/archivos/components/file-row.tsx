@@ -2,11 +2,13 @@
 
 import { FileText, Table, Image, Mic, Video, MoreVertical, Trash2, Download, Eye } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { FileItem, FileType, FileStatus } from "../page";
 
 interface FileRowProps {
   file: FileItem;
   onDelete: (file: FileItem) => void;
+  onDownload?: (file: FileItem) => void;
 }
 
 function getFileIcon(type: FileType) {
@@ -69,11 +71,16 @@ function formatDate(date: Date): string {
   }
 }
 
-export function FileRow({ file, onDelete }: FileRowProps) {
+export function FileRow({ file, onDelete, onDownload }: FileRowProps) {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { icon: Icon, color, bg } = getFileIcon(file.type);
   const status = getStatusBadge(file.status);
+
+  const handleRowClick = () => {
+    router.push(`/app/archivos/${file.id}`);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -86,14 +93,14 @@ export function FileRow({ file, onDelete }: FileRowProps) {
   }, []);
 
   return (
-    <tr className="group hover:bg-white/5 transition-colors">
+    <tr className="group hover:bg-white/5 transition-colors cursor-pointer" onClick={handleRowClick}>
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${bg}`}>
             <Icon className={`w-5 h-5 ${color}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-white font-medium truncate max-w-[200px] lg:max-w-[300px]">
+            <p className="text-white font-medium truncate max-w-[200px] lg:max-w-[300px] group-hover:text-indigo-400 transition-colors">
               {file.name}
             </p>
             <p className="text-white/40 text-xs">{file.mimeType}</p>
@@ -111,7 +118,7 @@ export function FileRow({ file, onDelete }: FileRowProps) {
           {status.label}
         </span>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -122,11 +129,23 @@ export function FileRow({ file, onDelete }: FileRowProps) {
 
           {menuOpen && (
             <div className="absolute right-0 top-full mt-1 w-40 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-10 overflow-hidden">
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  router.push(`/app/archivos/${file.id}`);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+              >
                 <Eye className="w-4 h-4" />
                 Ver detalles
               </button>
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDownload?.(file);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
+              >
                 <Download className="w-4 h-4" />
                 Descargar
               </button>

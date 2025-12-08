@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useRouter } from "next/navigation";
 import {
   Upload,
   FileText,
@@ -18,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 // Accepted file types
 const ACCEPTED_TYPES = {
@@ -87,11 +89,16 @@ interface UploadZoneProps {
 }
 
 export function UploadZone({ onComplete, onCancel, showCancelButton = true }: UploadZoneProps) {
+  const router = useRouter();
+  const { uploadFile, isUploading: hookUploading } = useFileUpload();
+
   const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [successCount, setSuccessCount] = useState(0);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log("[UploadZone] onDrop called with files:", acceptedFiles.length, acceptedFiles.map(f => f.name));
     const newFiles: QueuedFile[] = acceptedFiles.map((file) => {
       const isValid = isValidFileType(file) && file.size <= MAX_FILE_SIZE;
       let invalidReason: string | undefined;
@@ -128,76 +135,123 @@ export function UploadZone({ onComplete, onCancel, showCancelButton = true }: Up
     setQueuedFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const simulateUpload = async (fileId: string) => {
-    // Simulate upload progress
-    for (let progress = 0; progress <= 100; progress += 10) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+  const uploadSingleFile = async (queuedFile: QueuedFile): Promise<boolean> => {
+    const { id, file } = queuedFile;
+    console.log("[UploadZone] uploadSingleFile called for:", file.name);
+
+    // Set to uploading
+    setQueuedFiles((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, status: "uploading", progress: 10 } : f))
+    );
+
+    // Simulate progress while uploading
+    const progressInterval = setInterval(() => {
+      setQueuedFiles((prev) =>
+        prev.map((f) => {
+          if (f.id === id && f.status === "uploading" && f.progress < 90) {
+            return { ...f, progress: f.progress + 10 };
+          }
+          return f;
+        })
+      );
+    }, 300);
+
+    try {
+      console.log("[UploadZone] Calling uploadFile hook for:", file.name);
+      const result = await uploadFile(file);
+      console.log("[UploadZone] uploadFile result:", result);
+
+      clearInterval(progressInterval);
+
+      if (result.success) {
+        setQueuedFiles((prev) =>
+          prev.map((f) =>
+            f.id === id ? { ...f, status: "done", progress: 100 } : f
+          )
+        );
+        return true;
+      } else {
+        setQueuedFiles((prev) =>
+          prev.map((f) =>
+            f.id === id
+              ? { ...f, status: "error", error: result.error || "Error al subir" }
+              : f
+          )
+        );
+        return false;
+      }
+    } catch (error) {
+      clearInterval(progressInterval);
       setQueuedFiles((prev) =>
         prev.map((f) =>
-          f.id === fileId ? { ...f, status: "uploading", progress } : f
+          f.id === id
+            ? { ...f, status: "error", error: "Error de conexión" }
+            : f
         )
       );
+      return false;
     }
-
-    // Simulate processing
-    setQueuedFiles((prev) =>
-      prev.map((f) =>
-        f.id === fileId ? { ...f, status: "processing", progress: 100 } : f
-      )
-    );
-
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Random success/error (90% success rate for demo)
-    const success = Math.random() > 0.1;
-    setQueuedFiles((prev) =>
-      prev.map((f) =>
-        f.id === fileId
-          ? {
-              ...f,
-              status: success ? "done" : "error",
-              error: success ? undefined : "Error al procesar el archivo",
-            }
-          : f
-      )
-    );
   };
 
   const retryUpload = async (fileId: string) => {
+    const qf = queuedFiles.find((f) => f.id === fileId);
+    if (!qf) return;
+
     setQueuedFiles((prev) =>
       prev.map((f) =>
         f.id === fileId ? { ...f, status: "pending", progress: 0, error: undefined } : f
       )
     );
-    await simulateUpload(fileId);
+
+    await uploadSingleFile(qf);
   };
 
   const startUpload = async () => {
+    console.log("[UploadZone] startUpload called, queuedFiles:", queuedFiles.length);
     const validFiles = queuedFiles.filter((f) => f.isValid && f.status === "pending");
-    if (validFiles.length === 0) return;
-
-    setIsUploading(true);
-
-    // Upload files sequentially for demo (could be parallel)
-    for (const qf of validFiles) {
-      await simulateUpload(qf.id);
+    console.log("[UploadZone] validFiles:", validFiles.length, validFiles.map(f => f.file.name));
+    if (validFiles.length === 0) {
+      console.log("[UploadZone] No valid files to upload, returning");
+      return;
     }
 
+    setIsUploading(true);
+    let successfulUploads = 0;
+
+    // Upload files sequentially
+    for (const qf of validFiles) {
+      const success = await uploadSingleFile(qf);
+      if (success) successfulUploads++;
+    }
+
+    setSuccessCount(successfulUploads);
     setIsUploading(false);
     setUploadComplete(true);
+
+    // Call onComplete callback
+    if (successfulUploads > 0 && onComplete) {
+      onComplete();
+    }
   };
 
   const resetUpload = () => {
     setQueuedFiles([]);
     setUploadComplete(false);
+    setSuccessCount(0);
+  };
+
+  const goToFiles = () => {
+    router.push("/app/archivos");
+    router.refresh();
   };
 
   const validFilesCount = queuedFiles.filter((f) => f.isValid && f.status === "pending").length;
   const hasFiles = queuedFiles.length > 0;
-  const allDone = queuedFiles.length > 0 && queuedFiles.every((f) => f.status === "done" || !f.isValid);
+  const allDone = queuedFiles.length > 0 && queuedFiles.every((f) => f.status === "done" || f.status === "error" || !f.isValid);
+  const hasSuccesses = queuedFiles.some((f) => f.status === "done");
 
   // Success state
-  if (uploadComplete && allDone) {
+  if (uploadComplete && allDone && hasSuccesses) {
     return (
       <div className="text-center py-8">
         <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
@@ -207,7 +261,7 @@ export function UploadZone({ onComplete, onCancel, showCancelButton = true }: Up
           ¡Listo! Runtu está aprendiendo de tus archivos
         </h3>
         <p className="text-white/60 mb-6">
-          En unos momentos podrás hacerle preguntas sobre tu información.
+          {successCount} archivo{successCount > 1 ? "s" : ""} subido{successCount > 1 ? "s" : ""} correctamente.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
@@ -216,13 +270,13 @@ export function UploadZone({ onComplete, onCancel, showCancelButton = true }: Up
           >
             Subir más archivos
           </button>
-          <Link
-            href="/app/archivos"
+          <button
+            onClick={goToFiles}
             className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors inline-flex items-center justify-center gap-2"
           >
             <FolderOpen className="w-4 h-4" />
             Ir a mis archivos
-          </Link>
+          </button>
         </div>
       </div>
     );
