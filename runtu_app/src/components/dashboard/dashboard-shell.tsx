@@ -67,7 +67,6 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
       {/* Mobile Bottom Navigation */}
       <BottomNav
         onUploadClick={() => setShowUploadModal(true)}
-        onMenuClick={() => setMobileNavOpen(true)}
       />
 
       {/* Upload Modal */}

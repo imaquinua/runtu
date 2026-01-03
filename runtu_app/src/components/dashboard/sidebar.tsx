@@ -1,62 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  Upload,
-  Folder,
-  Brain,
-  MessageCircle,
-  BarChart3,
-  Bell,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { MessageCircle, FolderOpen, LogOut } from "lucide-react";
 import { RuntuLogo } from "@/components/ui/runtu-logo";
 import { logout } from "@/app/actions/auth";
 
 interface SidebarProps {
   businessName?: string;
   onClose?: () => void;
-  unreadSummaries?: number;
 }
 
+// Navegación simplificada - Chat es la experiencia principal
 const navItems = [
-  { href: "/app/inicio", label: "Inicio", icon: Home },
-  { href: "/app/subir", label: "Subir", icon: Upload },
-  { href: "/app/archivos", label: "Mis Archivos", icon: Folder },
-  { href: "/app/conocimiento", label: "Conocimiento", icon: Brain },
   { href: "/app/chat", label: "Chat", icon: MessageCircle },
-  { href: "/app/resumenes", label: "Resúmenes", icon: BarChart3 },
-  { href: "/app/alertas", label: "Alertas", icon: Bell },
-  { href: "/app/configuracion", label: "Configuración", icon: Settings },
+  { href: "/app/archivos", label: "Mis Archivos", icon: FolderOpen },
 ];
 
-export function Sidebar({ businessName = "Mi Negocio", onClose, unreadSummaries: propUnread }: SidebarProps) {
+export function Sidebar({ businessName = "Mi Negocio", onClose }: SidebarProps) {
   const pathname = usePathname();
-  const [unreadCount, setUnreadCount] = useState(propUnread || 0);
-
-  // Fetch unread count on mount if not provided
-  useEffect(() => {
-    if (propUnread !== undefined) {
-      setUnreadCount(propUnread);
-      return;
-    }
-
-    // Fetch unread summaries count
-    fetch("/api/summaries?unreadOnly=true&limit=1")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.total !== undefined) {
-          setUnreadCount(data.total);
-        }
-      })
-      .catch(() => {
-        // Silent fail
-      });
-  }, [propUnread, pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -73,9 +35,8 @@ export function Sidebar({ businessName = "Mi Negocio", onClose, unreadSummaries:
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href);
           const Icon = item.icon;
-          const showBadge = item.href === "/app/resumenes" && unreadCount > 0;
 
           return (
             <Link
@@ -94,12 +55,7 @@ export function Sidebar({ businessName = "Mi Negocio", onClose, unreadSummaries:
                 }`}
               />
               {item.label}
-              {showBadge && (
-                <span className="ml-auto px-1.5 py-0.5 text-xs font-bold bg-indigo-500 text-white rounded-full min-w-[20px] text-center">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-              {isActive && !showBadge && (
+              {isActive && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
               )}
             </Link>
