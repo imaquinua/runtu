@@ -1,0 +1,324 @@
+/**
+ * Run2 Logo Component - Animations
+ *
+ * Este archivo contiene todas las animaciones y estilos
+ * para el componente del logo animado de Run2.
+ *
+ * Uso: Incluir este CSS en tu proyecto y aplicar las clases
+ * según la documentación en docs/logo-component.md
+ *
+ * @version 1.0.0
+ * @author Run2 Design System
+ */
+
+/* ============================================
+   KEYFRAME ANIMATIONS
+   ============================================ */
+
+/**
+ * Logo Reveal Animation
+ * Se ejecuta una vez al cargar el componente
+ */
+@keyframes logo-reveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+        filter: blur(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+    }
+}
+
+/**
+ * Float Animation
+ * Movimiento sutil arriba-abajo continuo
+ */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/**
+ * Spin Slow Animation
+ * Rotación lenta para el anillo de luz
+ */
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/**
+ * Pulse Glow Animation
+ * Efecto de respiración del glow
+ */
+@keyframes pulse-glow {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+/**
+ * Orbit Animation
+ * Rotación horaria para partículas
+ */
+@keyframes orbit {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/**
+ * Orbit Reverse Animation
+ * Rotación anti-horaria para partículas
+ */
+@keyframes orbit-reverse {
+    from {
+        transform: rotate(360deg);
+    }
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+/* ============================================
+   ANIMATION CLASSES
+   ============================================ */
+
+/**
+ * Aplica la animación de reveal inicial
+ * Timing: 1.2s con bounce elegante
+ */
+.animate-logo-reveal {
+    animation: logo-reveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/**
+ * Aplica la animación flotante continua
+ * Timing: 4s infinito
+ */
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+}
+
+/**
+ * Aplica rotación lenta continua
+ * Timing: 20s infinito
+ */
+.animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+}
+
+/**
+ * Aplica efecto de glow pulsante
+ * Timing: 3s infinito
+ */
+.animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/**
+ * Aplica órbita horaria
+ * Timing: 8s infinito
+ */
+.animate-orbit {
+    animation: orbit 8s linear infinite;
+}
+
+/**
+ * Aplica órbita anti-horaria
+ * Timing: 6s infinito
+ */
+.animate-orbit-reverse {
+    animation: orbit-reverse 6s linear infinite;
+}
+
+/* ============================================
+   ACCESSIBILITY - REDUCED MOTION
+   ============================================ */
+
+/**
+ * Respeta las preferencias de movimiento reducido
+ * del usuario para accesibilidad
+ */
+@media (prefers-reduced-motion: reduce) {
+    .animate-logo-reveal,
+    .animate-float,
+    .animate-spin-slow,
+    .animate-pulse-glow,
+    .animate-orbit,
+    .animate-orbit-reverse {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    /* Mantener solo el reveal rápido */
+    .animate-logo-reveal {
+        animation-duration: 0.3s !important;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/**
+ * Clase helper para el contenedor del logo
+ * Asegura que las capas se apilen correctamente
+ */
+.logo-container {
+    position: relative;
+    display: inline-block;
+    isolation: isolate;
+}
+
+/**
+ * Capa base para efectos de fondo
+ */
+.logo-layer-background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+/**
+ * Capa para el logo principal
+ */
+.logo-layer-main {
+    position: relative;
+    z-index: 2;
+}
+
+/**
+ * Capa para efectos de frente
+ */
+.logo-layer-foreground {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/**
+ * Optimizaciones de GPU para mejor performance
+ */
+.animate-float,
+.animate-spin-slow,
+.animate-orbit,
+.animate-orbit-reverse {
+    will-change: transform;
+}
+
+.animate-pulse-glow {
+    will-change: opacity, transform;
+}
+
+.animate-logo-reveal {
+    will-change: opacity, transform, filter;
+}
+
+/* ============================================
+   THEME VARIABLES (opcional)
+   ============================================ */
+
+/**
+ * Variables CSS para fácil customización
+ * Puedes sobrescribir estos valores en tu proyecto
+ */
+:root {
+    --logo-float-distance: -10px;
+    --logo-float-duration: 4s;
+    --logo-spin-duration: 20s;
+    --logo-pulse-duration: 3s;
+    --logo-orbit-duration: 8s;
+    --logo-orbit-reverse-duration: 6s;
+    --logo-reveal-duration: 1.2s;
+}
+
+/* ============================================
+   VARIANTES DEL COMPONENTE
+   ============================================ */
+
+/**
+ * Variante Hero (tamaño completo, todas las animaciones)
+ * Uso: Agrega la clase .logo-variant-hero al contenedor
+ */
+.logo-variant-hero {
+    /* Ya incluido en el diseño base */
+}
+
+/**
+ * Variante Header (tamaño mediano, animaciones sutiles)
+ * Uso: Agrega la clase .logo-variant-header al contenedor
+ */
+.logo-variant-header .animate-orbit,
+.logo-variant-header .animate-orbit-reverse {
+    display: none;
+}
+
+.logo-variant-header .animate-spin-slow {
+    animation-duration: 30s; /* Más lento */
+}
+
+/**
+ * Variante Minimal (solo logo, sin animaciones continuas)
+ * Uso: Agrega la clase .logo-variant-minimal al contenedor
+ */
+.logo-variant-minimal .animate-float,
+.logo-variant-minimal .animate-spin-slow,
+.logo-variant-minimal .animate-pulse-glow,
+.logo-variant-minimal .animate-orbit,
+.logo-variant-minimal .animate-orbit-reverse {
+    animation: none;
+}
+
+/* ============================================
+   NOTAS DE USO
+   ============================================ */
+
+/*
+ * EJEMPLO DE IMPLEMENTACIÓN:
+ *
+ * <div class="logo-container animate-logo-reveal">
+ *     <!-- Anillo rotatorio -->
+ *     <div class="logo-layer-background -m-6 animate-spin-slow">
+ *         <div class="absolute inset-0 rounded-full bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-xl"></div>
+ *     </div>
+ *
+ *     <!-- Glow pulsante -->
+ *     <div class="logo-layer-background -m-4 animate-pulse-glow">
+ *         <div class="absolute inset-0 rounded-full bg-accent/10 blur-2xl"></div>
+ *     </div>
+ *
+ *     <!-- Logo con flotación -->
+ *     <div class="logo-layer-main animate-float">
+ *         <img src="img/runtu_logo.png" alt="Run2 Logo" class="w-32 h-32">
+ *     </div>
+ *
+ *     <!-- Partículas orbitantes -->
+ *     <div class="logo-layer-foreground animate-orbit">
+ *         <div class="absolute top-0 left-1/2 w-2 h-2 bg-accent rounded-full -ml-1"></div>
+ *     </div>
+ * </div>
+ */

@@ -1,0 +1,305 @@
+<!--
+    Run2 Logo Component - HTML Template
+
+    Este archivo contiene el template HTML para el logo animado de Run2.
+    Puedes copiar y pegar este código en cualquier página de tu aplicación.
+
+    REQUISITOS:
+    - Tailwind CSS v3+
+    - components/logo-animations.css incluido
+    - img/runtu_logo.png disponible
+
+    @version 1.0.0
+    @author Run2 Design System
+-->
+
+<!-- ============================================
+     VARIANTE HERO (Landing Pages, Coming Soon)
+     ============================================ -->
+
+<div class="mb-16 animate-logo-reveal">
+    <div class="relative inline-block">
+
+        <!-- Rotating ring effect -->
+        <div class="absolute inset-0 -m-6 animate-spin-slow">
+            <div class="absolute inset-0 rounded-full bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-xl"></div>
+        </div>
+
+        <!-- Pulsing glow -->
+        <div class="absolute inset-0 -m-4 animate-pulse-glow">
+            <div class="absolute inset-0 rounded-full bg-accent/10 blur-2xl"></div>
+        </div>
+
+        <!-- Logo container with floating animation -->
+        <div class="relative animate-float">
+            <div class="relative inline-block">
+                <!-- Logo glow shadow -->
+                <div class="absolute inset-0 blur-xl opacity-60 bg-accent/30 rounded-full"></div>
+
+                <!-- Actual logo -->
+                <img src="img/runtu_logo.png"
+                     alt="Run2 Logo"
+                     class="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 object-contain filter drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]">
+            </div>
+        </div>
+
+        <!-- Orbiting particles -->
+        <div class="absolute inset-0 animate-orbit">
+            <div class="absolute top-0 left-1/2 w-2 h-2 bg-accent rounded-full -ml-1 blur-[1px]"></div>
+        </div>
+        <div class="absolute inset-0 animate-orbit-reverse">
+            <div class="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-accent/60 rounded-full -ml-1 blur-[1px]"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================
+     VARIANTE HEADER (Navegación, Headers)
+     ============================================ -->
+
+<div class="animate-logo-reveal logo-variant-header">
+    <div class="relative inline-block">
+
+        <!-- Pulsing glow (más sutil) -->
+        <div class="absolute inset-0 -m-3 animate-pulse-glow">
+            <div class="absolute inset-0 rounded-full bg-accent/8 blur-xl"></div>
+        </div>
+
+        <!-- Logo container with floating animation -->
+        <div class="relative animate-float">
+            <div class="relative inline-block">
+                <!-- Logo glow shadow -->
+                <div class="absolute inset-0 blur-lg opacity-40 bg-accent/20 rounded-full"></div>
+
+                <!-- Actual logo -->
+                <img src="img/runtu_logo.png"
+                     alt="Run2 Logo"
+                     class="relative w-16 h-16 sm:w-20 sm:h-20 object-contain filter drop-shadow-[0_0_20px_rgba(251,191,36,0.3)]">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================
+     VARIANTE MINIMAL (Footers, Favicon contexts)
+     ============================================ -->
+
+<div class="animate-logo-reveal logo-variant-minimal">
+    <div class="relative inline-block">
+        <!-- Actual logo (sin animaciones continuas) -->
+        <img src="img/runtu_logo.png"
+             alt="Run2 Logo"
+             class="w-12 h-12 sm:w-16 sm:h-16 object-contain filter drop-shadow-[0_0_15px_rgba(251,191,36,0.2)]">
+    </div>
+</div>
+
+
+<!-- ============================================
+     VARIANTE LOADING (Splash Screens, Loading)
+     ============================================ -->
+
+<div class="animate-logo-reveal">
+    <div class="relative inline-block">
+
+        <!-- Rotating ring effect (más rápido) -->
+        <div class="absolute inset-0 -m-8 animate-spin-slow" style="animation-duration: 10s;">
+            <div class="absolute inset-0 rounded-full bg-gradient-to-r from-accent/30 via-transparent to-accent/30 blur-xl"></div>
+        </div>
+
+        <!-- Pulsing glow (más intenso) -->
+        <div class="absolute inset-0 -m-6 animate-pulse-glow" style="animation-duration: 2s;">
+            <div class="absolute inset-0 rounded-full bg-accent/15 blur-2xl"></div>
+        </div>
+
+        <!-- Logo container with floating animation -->
+        <div class="relative animate-float" style="animation-duration: 3s;">
+            <div class="relative inline-block">
+                <!-- Logo glow shadow -->
+                <div class="absolute inset-0 blur-2xl opacity-70 bg-accent/40 rounded-full"></div>
+
+                <!-- Actual logo -->
+                <img src="img/runtu_logo.png"
+                     alt="Run2 Logo - Cargando"
+                     class="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain filter drop-shadow-[0_0_40px_rgba(251,191,36,0.5)]">
+            </div>
+        </div>
+
+        <!-- Orbiting particles (más rápidas) -->
+        <div class="absolute inset-0 animate-orbit" style="animation-duration: 5s;">
+            <div class="absolute top-0 left-1/2 w-2.5 h-2.5 bg-accent rounded-full -ml-1 blur-[1px] shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
+        </div>
+        <div class="absolute inset-0 animate-orbit-reverse" style="animation-duration: 4s;">
+            <div class="absolute bottom-0 left-1/2 w-2 h-2 bg-accent rounded-full -ml-1 blur-[1px] shadow-[0_0_10px_rgba(251,191,36,0.6)]"></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================
+     EJEMPLO DE USO EN REACT/JSX
+     ============================================
+
+const Run2Logo = ({ variant = 'hero', size = 'md' }) => {
+  const sizeClasses = {
+    sm: 'w-16 h-16 sm:w-20 sm:h-20',
+    md: 'w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32',
+    lg: 'w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48',
+  };
+
+  const variantClasses = {
+    hero: '',
+    header: 'logo-variant-header',
+    minimal: 'logo-variant-minimal',
+  };
+
+  return (
+    <div className={`animate-logo-reveal ${variantClasses[variant]}`}>
+      <div className="relative inline-block">
+        {variant !== 'minimal' && (
+          <>
+            <div className="absolute inset-0 -m-6 animate-spin-slow">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-xl"></div>
+            </div>
+            <div className="absolute inset-0 -m-4 animate-pulse-glow">
+              <div className="absolute inset-0 rounded-full bg-accent/10 blur-2xl"></div>
+            </div>
+          </>
+        )}
+
+        <div className={variant !== 'minimal' ? 'relative animate-float' : 'relative'}>
+          <div className="relative inline-block">
+            <div className="absolute inset-0 blur-xl opacity-60 bg-accent/30 rounded-full"></div>
+            <img
+              src="/img/runtu_logo.png"
+              alt="Run2 Logo"
+              className={`relative ${sizeClasses[size]} object-contain filter drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]`}
+            />
+          </div>
+        </div>
+
+        {variant === 'hero' && (
+          <>
+            <div className="absolute inset-0 animate-orbit">
+              <div className="absolute top-0 left-1/2 w-2 h-2 bg-accent rounded-full -ml-1 blur-[1px]"></div>
+            </div>
+            <div className="absolute inset-0 animate-orbit-reverse">
+              <div className="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-accent/60 rounded-full -ml-1 blur-[1px]"></div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Run2Logo;
+
+============================================ -->
+
+
+<!-- ============================================
+     EJEMPLO DE USO EN VUE
+     ============================================
+
+<template>
+  <div :class="['animate-logo-reveal', variantClass]">
+    <div class="relative inline-block">
+      <template v-if="variant !== 'minimal'">
+        <div class="absolute inset-0 -m-6 animate-spin-slow">
+          <div class="absolute inset-0 rounded-full bg-gradient-to-r from-accent/20 via-transparent to-accent/20 blur-xl"></div>
+        </div>
+        <div class="absolute inset-0 -m-4 animate-pulse-glow">
+          <div class="absolute inset-0 rounded-full bg-accent/10 blur-2xl"></div>
+        </div>
+      </template>
+
+      <div :class="variant !== 'minimal' ? 'relative animate-float' : 'relative'">
+        <div class="relative inline-block">
+          <div class="absolute inset-0 blur-xl opacity-60 bg-accent/30 rounded-full"></div>
+          <img
+            src="/img/runtu_logo.png"
+            alt="Run2 Logo"
+            :class="`relative ${sizeClass} object-contain filter drop-shadow-[0_0_30px_rgba(251,191,36,0.4)]`"
+          />
+        </div>
+      </div>
+
+      <template v-if="variant === 'hero'">
+        <div class="absolute inset-0 animate-orbit">
+          <div class="absolute top-0 left-1/2 w-2 h-2 bg-accent rounded-full -ml-1 blur-[1px]"></div>
+        </div>
+        <div class="absolute inset-0 animate-orbit-reverse">
+          <div class="absolute bottom-0 left-1/2 w-1.5 h-1.5 bg-accent/60 rounded-full -ml-1 blur-[1px]"></div>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Run2Logo',
+  props: {
+    variant: {
+      type: String,
+      default: 'hero',
+      validator: (value) => ['hero', 'header', 'minimal', 'loading'].includes(value)
+    },
+    size: {
+      type: String,
+      default: 'md',
+      validator: (value) => ['sm', 'md', 'lg'].includes(value)
+    }
+  },
+  computed: {
+    variantClass() {
+      const classes = {
+        hero: '',
+        header: 'logo-variant-header',
+        minimal: 'logo-variant-minimal',
+        loading: ''
+      };
+      return classes[this.variant];
+    },
+    sizeClass() {
+      const sizes = {
+        sm: 'w-16 h-16 sm:w-20 sm:h-20',
+        md: 'w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32',
+        lg: 'w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48'
+      };
+      return sizes[this.size];
+    }
+  }
+};
+</script>
+
+============================================ -->
+
+
+<!-- ============================================
+     NOTAS DE IMPLEMENTACIÓN
+     ============================================
+
+PASOS PARA USAR ESTE COMPONENTE:
+
+1. Incluir CSS:
+   <link rel="stylesheet" href="components/logo-animations.css">
+
+2. Configurar Tailwind (si no está ya):
+   - Asegurar que las clases personalizadas estén disponibles
+   - Verificar que los colores accent estén definidos
+
+3. Incluir la imagen del logo:
+   - Colocar runtu_logo.png en carpeta img/
+   - Verificar que la ruta sea correcta
+
+4. Copiar el HTML de la variante deseada
+
+5. (Opcional) Customizar:
+   - Ajustar tamaños con clases w-* h-*
+   - Modificar velocidades con inline styles
+   - Cambiar colores en Tailwind config
+
+============================================ -->
