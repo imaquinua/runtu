@@ -1,133 +1,16 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Runtu - Muy pronto">
-    <title>Runtu · Muy pronto</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Runtu.tech — Marketing OS</title>
+      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+    </head>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'montserrat': ['Montserrat', 'sans-serif'],
-                    },
-                    colors: {
-                        'dark': '#020617',
-                        'accent': '#fbbf24',
-                    },
-                }
-            }
-        }
-    </script>
-</head>
-<body class="font-montserrat bg-dark text-white antialiased overflow-hidden">
-
-    <!-- Background -->
-    <div class="fixed inset-0 -z-10">
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-black"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(251,191,36,0.08),transparent_50%)]"></div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="min-h-screen flex flex-col items-center justify-center px-6">
-
-        <!-- Logo with floating animation -->
-        <div class="relative mb-12 animate-logo-reveal">
-            <!-- Pulsing glow -->
-            <div class="absolute inset-0 -m-8 animate-pulse-glow">
-                <div class="absolute inset-0 rounded-full bg-accent/20 blur-3xl"></div>
-            </div>
-
-            <!-- Floating logo -->
-            <div class="relative animate-float">
-                <img src="img/runtu_logo.png"
-                     alt="Runtu Logo"
-                     class="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain filter drop-shadow-[0_0_40px_rgba(251,191,36,0.5)]">
-            </div>
-        </div>
-
-        <!-- Coming Soon Text -->
-        <div class="text-center animate-fade-in">
-            <p class="text-2xl sm:text-3xl md:text-4xl font-light text-white/80 tracking-wide">
-                Muy pronto
-            </p>
-            <p class="text-3xl sm:text-4xl md:text-5xl font-bold text-accent mt-2 tracking-tight">
-                runtu.tech
-            </p>
-        </div>
-
-    </main>
-
-    <style>
-        @keyframes fade-in {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes logo-reveal {
-            0% {
-                opacity: 0;
-                transform: scale(0.8);
-                filter: blur(10px);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-                filter: blur(0);
-            }
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-15px);
-            }
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% {
-                opacity: 0.4;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.7;
-                transform: scale(1.1);
-            }
-        }
-
-        .animate-fade-in {
-            animation: fade-in 1s ease-out 0.5s backwards;
-        }
-
-        .animate-logo-reveal {
-            animation: logo-reveal 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .animate-float {
-            animation: float 4s ease-in-out infinite;
-        }
-
-        .animate-pulse-glow {
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
-    </style>
-
-</body>
-</html>
+    <body>
+      <div id="root"></div>
+      <script type="module" src="/src/main.tsx"></script>
+    </body>
+  </html>
+  

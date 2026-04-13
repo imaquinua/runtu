@@ -1,6 +1,18 @@
-# RUNTU.TECH — UX BRIEF COMPLETO
+# RUNTU.TECH — UX BRIEF (aspiracional)
 ## Marketing Intelligence Platform para Latinoamérica
-**Versión:** 2.0 | **Fecha:** Abril 2026 | **Stack:** Next.js 16 + Supabase + Tailwind
+**Versión:** 2.0 | **Fecha:** Abril 2026 | **Stack implementado:** Vite + React 18 + Supabase + Tailwind 4
+
+---
+
+> ⚠️ **Nota importante sobre este documento**
+>
+> Este brief describe una **visión aspiracional** del producto con tema oscuro (`#020617`), acentos dorados (`#fbbf24`) y logo animado de 5 capas.
+>
+> La **implementación actual** sigue un enfoque **light mode** (fondo `#FAFAFA`, texto `gray-900`, acentos ámbar sutiles), más cercano al estilo Linear/Notion. La decisión fue posterior al brief, buscando mayor legibilidad en data tables densas y charts econométricos del MMM Engine.
+>
+> Las guidelines del sistema **real** están en [`guidelines/Guidelines.md`](./guidelines/Guidelines.md).
+>
+> El brief dark-mode queda como referencia para futuros módulos o una posible v2.1 con tema oscuro opcional.
 
 ---
 
