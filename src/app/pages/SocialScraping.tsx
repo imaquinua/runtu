@@ -1,266 +1,532 @@
-import { useState } from "react";
-import { Search, Plus, Play, Hash, AtSign, Eye, ThumbsUp, ThumbsDown, Minus } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { useEffect, useState } from "react";
+import {
+  Plus, Radar, Hash, User, Search as SearchIcon, Trash2, Pause, Play,
+  TrendingUp, TrendingDown, AlertTriangle, Loader2, X, ExternalLink,
+  MessageSquare, Sparkles, Radio, Globe,
+} from "lucide-react";
+import { useNavigate } from "react-router";
+import { listJobs, createJob, getJob, deleteJob, updateJob, type JobDetail } from "../../lib/scraping/client";
+import type { ScrapingJob, ScrapingJobType, ScrapingPlatform } from "../../lib/scraping/types";
+import { SUPPORTED_PLATFORMS } from "../../lib/scraping/actors";
 
-interface ScrapingJob {
-  id: string; query: string; type: "hashtag" | "account" | "keyword";
-  platforms: string[]; status: "active" | "paused" | "completed"; results: number;
-  sentiment: { pos: number; neu: number; neg: number }; lastRun: string;
+const PLATFORM_LABELS: Record<ScrapingPlatform, string> = {
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  x: "X",
+  reddit: "Reddit",
+  "google-serp": "Google",
+};
+
+const PLATFORM_COLORS: Record<ScrapingPlatform, string> = {
+  instagram: "#E1306C",
+  tiktok: "#6d28d9",
+  x: "#111827",
+  reddit: "#FF4500",
+  "google-serp": "#4285F4",
+};
+
+const TYPE_ICONS: Record<ScrapingJobType, typeof Hash> = {
+  hashtag: Hash,
+  account: User,
+  keyword: SearchIcon,
+};
+
+function formatRelative(iso: string | null): string {
+  if (!iso) return "—";
+  const diffMin = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (diffMin < 1) return "ahora";
+  if (diffMin < 60) return `${diffMin}m`;
+  const h = Math.floor(diffMin / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
 }
 
-const mockJobs: ScrapingJob[] = [
-  { id: "1", query: "#skincaremexicano", type: "hashtag", platforms: ["Instagram", "TikTok"], status: "active", results: 2847, sentiment: { pos: 58, neu: 28, neg: 14 }, lastRun: "Hace 5 min" },
-  { id: "2", query: "@competidor_mx", type: "account", platforms: ["Instagram", "Facebook", "TikTok"], status: "active", results: 1253, sentiment: { pos: 42, neu: 35, neg: 23 }, lastRun: "Hace 15 min" },
-  { id: "3", query: "cosmetica natural mexico", type: "keyword", platforms: ["TikTok", "LinkedIn", "Google"], status: "paused", results: 5621, sentiment: { pos: 65, neu: 22, neg: 13 }, lastRun: "Hace 2h" },
-  { id: "4", query: "#bellezalatina", type: "hashtag", platforms: ["Instagram", "TikTok", "Facebook"], status: "completed", results: 8432, sentiment: { pos: 71, neu: 19, neg: 10 }, lastRun: "Hace 1 dia" },
-];
+function SentimentDot({ sentiment }: { sentiment: string | null }) {
+  const color =
+    sentiment === "positive" ? "#10b981" : sentiment === "negative" ? "#ef4444" : sentiment === "neutral" ? "#6b7280" : "#d1d5db";
+  return <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />;
+}
 
-const volumeData = [
-  { hour: "00", mentions: 45 }, { hour: "04", mentions: 12 }, { hour: "08", mentions: 120 },
-  { hour: "10", mentions: 230 }, { hour: "12", mentions: 310 }, { hour: "14", mentions: 280 },
-  { hour: "16", mentions: 350 }, { hour: "18", mentions: 420 }, { hour: "20", mentions: 380 }, { hour: "22", mentions: 190 },
-];
+// ==========================================================================
+// Modal: crear nuevo job
+// ==========================================================================
+function CreateJobModal({ onClose, onCreated }: { onClose: () => void; onCreated: (j: ScrapingJob) => void }) {
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState<ScrapingJobType>("hashtag");
+  const [platforms, setPlatforms] = useState<ScrapingPlatform[]>(["instagram", "tiktok"]);
+  const [schedule, setSchedule] = useState<"manual" | "hourly" | "daily">("manual");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-const platformBreakdown = [
-  { name: "Instagram", value: 38, color: "#E1306C" },
-  { name: "TikTok", value: 32, color: "#6d28d9" },
-  { name: "Facebook", value: 18, color: "#1877F2" },
-  { name: "LinkedIn", value: 8, color: "#0A66C2" },
-  { name: "Google", value: 4, color: "#4285F4" },
-];
+  const togglePlatform = (p: ScrapingPlatform) => {
+    setPlatforms((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
+  };
 
-const sentimentTimeline = [
-  { day: "Lun", positivo: 62, neutral: 25, negativo: 13 },
-  { day: "Mar", positivo: 58, neutral: 28, negativo: 14 },
-  { day: "Mie", positivo: 65, neutral: 22, negativo: 13 },
-  { day: "Jue", positivo: 55, neutral: 30, negativo: 15 },
-  { day: "Vie", positivo: 70, neutral: 20, negativo: 10 },
-  { day: "Sab", positivo: 72, neutral: 18, negativo: 10 },
-  { day: "Dom", positivo: 68, neutral: 22, negativo: 10 },
-];
+  const handleSubmit = async () => {
+    setError(null);
+    if (!query.trim()) return setError("Escribe el query");
+    if (!platforms.length) return setError("Selecciona al menos una plataforma");
+    setLoading(true);
+    try {
+      const job = await createJob({ query: query.trim(), type, platforms, schedule });
+      onCreated(job);
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error creando job");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const mockMentions = [
-  { id: "m1", platform: "TikTok", user: "@beautylatam", text: "Probando esta marca de skincare mexicano y WOW los resultados son increibles!", sentiment: "positive" as const, engagement: "12.4K", time: "Hace 23 min" },
-  { id: "m2", platform: "Instagram", user: "@skincare_review", text: "Llevo 2 semanas usando el serum y no veo mucho cambio. El precio es algo elevado.", sentiment: "negative" as const, engagement: "890", time: "Hace 1h" },
-  { id: "m3", platform: "Facebook", user: "Maria G.", text: "Alguien ha probado la linea nueva? Quiero opiniones reales.", sentiment: "neutral" as const, engagement: "234", time: "Hace 2h" },
-  { id: "m4", platform: "TikTok", user: "@glow.routine", text: "RUTINA DE NOCHE con productos mexicanos! El humectante es mi favorito absoluto", sentiment: "positive" as const, engagement: "45.2K", time: "Hace 3h" },
-  { id: "m5", platform: "LinkedIn", user: "Carlos V.", text: "La industria cosmetica mexicana crece 23% YoY. Las marcas independientes lideran.", sentiment: "positive" as const, engagement: "1.2K", time: "Hace 5h" },
-];
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg text-gray-900" style={{ fontWeight: 700 }}>Nuevo Social Scraping</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+        </div>
 
-const typeIcon = { hashtag: Hash, account: AtSign, keyword: Search };
-const statusConfig = {
-  active: { label: "Activo", cls: "text-emerald-600 bg-emerald-50 border-emerald-200" },
-  paused: { label: "Pausado", cls: "text-amber-600 bg-amber-50 border-amber-200" },
-  completed: { label: "Completo", cls: "text-gray-500 bg-gray-50 border-gray-200" },
-};
-const sentimentIcon = { positive: ThumbsUp, negative: ThumbsDown, neutral: Minus };
-const sentimentColor = { positive: "text-emerald-500", negative: "text-red-400", neutral: "text-gray-400" };
+        <div className="space-y-4">
+          <div>
+            <label className="text-gray-500 text-xs mb-1.5 block" style={{ fontWeight: 600 }}>Tipo</label>
+            <div className="grid grid-cols-3 gap-2">
+              {(["hashtag", "account", "keyword"] as ScrapingJobType[]).map((t) => {
+                const Icon = TYPE_ICONS[t];
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setType(t)}
+                    className={`flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs transition-colors ${
+                      type === t ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                    style={{ fontWeight: 600 }}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {t === "hashtag" ? "Hashtag" : t === "account" ? "Cuenta" : "Keyword"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-const tt = { backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, color: "#111", fontSize: 12 };
+          <div>
+            <label className="text-gray-500 text-xs mb-1.5 block" style={{ fontWeight: 600 }}>Query</label>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={type === "hashtag" ? "#skincaremexicano" : type === "account" ? "@competidor_mx" : "receta natural"}
+              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-gray-400 focus:ring-2 focus:ring-gray-200 outline-none"
+            />
+          </div>
 
-export function SocialScraping() {
-  const [selectedJob, setSelectedJob] = useState<string | null>("1");
-  const [showNewModal, setShowNewModal] = useState(false);
-  const [newQuery, setNewQuery] = useState("");
-  const [newType, setNewType] = useState<"hashtag" | "account" | "keyword">("hashtag");
-  const [filterSentiment, setFilterSentiment] = useState<"all" | "positive" | "negative" | "neutral">("all");
+          <div>
+            <label className="text-gray-500 text-xs mb-1.5 block" style={{ fontWeight: 600 }}>Plataformas</label>
+            <div className="flex flex-wrap gap-2">
+              {SUPPORTED_PLATFORMS.map((p) => {
+                const active = platforms.includes(p);
+                return (
+                  <button
+                    key={p}
+                    onClick={() => togglePlatform(p)}
+                    className={`px-3 py-1.5 rounded-full border text-xs transition-colors ${
+                      active
+                        ? "border-gray-900 bg-gray-900 text-white"
+                        : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
+                    style={{ fontWeight: 600 }}
+                  >
+                    {PLATFORM_LABELS[p]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-  const activeJob = mockJobs.find(j => j.id === selectedJob);
-  const filteredMentions = filterSentiment === "all" ? mockMentions : mockMentions.filter(m => m.sentiment === filterSentiment);
+          <div>
+            <label className="text-gray-500 text-xs mb-1.5 block" style={{ fontWeight: 600 }}>Frecuencia</label>
+            <select
+              value={schedule}
+              onChange={(e) => setSchedule(e.target.value as typeof schedule)}
+              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm"
+            >
+              <option value="manual">Manual (una vez)</option>
+              <option value="hourly">Cada hora</option>
+              <option value="daily">Diario</option>
+            </select>
+          </div>
+
+          {error && <p className="text-red-500 text-xs">{error}</p>}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={onClose}
+              className="flex-1 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl py-2.5 text-sm"
+              style={{ fontWeight: 600 }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex-1 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-xl py-2.5 text-sm flex items-center justify-center gap-2"
+              style={{ fontWeight: 600 }}
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {loading ? "Creando..." : "Crear y ejecutar"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================================================
+// Vista detalle de un job
+// ==========================================================================
+function JobDetailView({ jobId, onBack, onDeleted }: { jobId: string; onBack: () => void; onDeleted: () => void }) {
+  const navigate = useNavigate();
+  const [detail, setDetail] = useState<JobDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "positive" | "neutral" | "negative">("all");
+
+  useEffect(() => {
+    getJob(jobId).then((d) => { setDetail(d); setLoading(false); }).catch(() => setLoading(false));
+    const int = setInterval(() => getJob(jobId).then(setDetail).catch(() => {}), 15000);
+    return () => clearInterval(int);
+  }, [jobId]);
+
+  const handleDelete = async () => {
+    if (!confirm("¿Eliminar este job y todas sus menciones?")) return;
+    await deleteJob(jobId);
+    onDeleted();
+  };
+
+  const handleToggleStatus = async () => {
+    if (!detail) return;
+    const newStatus = detail.job.status === "active" ? "paused" : "active";
+    const updated = await updateJob(jobId, { status: newStatus });
+    setDetail({ ...detail, job: updated });
+  };
+
+  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>;
+  if (!detail) return <div className="p-8 text-gray-400">No se pudo cargar</div>;
+
+  const { job, mentions, narratives, runs } = detail;
+  const filteredMentions = filter === "all" ? mentions : mentions.filter((m) => m.sentiment === filter);
+
+  const sentimentBreakdown = {
+    positive: mentions.filter((m) => m.sentiment === "positive").length,
+    neutral: mentions.filter((m) => m.sentiment === "neutral").length,
+    negative: mentions.filter((m) => m.sentiment === "negative").length,
+  };
+
+  const Icon = TYPE_ICONS[job.type];
+  const pendingEnrich = mentions.filter((m) => !m.sentiment).length;
 
   return (
     <div className="p-4 md:p-6 lg:p-8 pb-20 lg:pb-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl text-gray-900 tracking-tight" style={{ fontWeight: 900 }}>Social Scraping</h1>
-          <p className="text-gray-400 text-sm mt-1">Monitoreo en tiempo real con clasificacion de sentimiento y keywords</p>
+          <button onClick={onBack} className="text-gray-500 hover:text-gray-900 text-sm flex items-center gap-1 mb-2">
+            ← Volver
+          </button>
+          <h1 className="text-2xl md:text-3xl text-gray-900 tracking-tight flex items-center gap-2" style={{ fontWeight: 900 }}>
+            <Icon className="w-6 h-6 text-gray-500" /> {job.query}
+          </h1>
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <span className={`text-[10px] px-2 py-1 rounded-full ${
+              job.status === "active" ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-500"
+            }`} style={{ fontWeight: 600 }}>
+              {job.status === "active" ? "● Activo" : "⏸ Pausado"}
+            </span>
+            {job.platforms.map((p) => (
+              <span key={p} className="text-[10px] text-gray-500 bg-gray-100 px-2 py-1 rounded-full" style={{ fontWeight: 500 }}>
+                {PLATFORM_LABELS[p]}
+              </span>
+            ))}
+            <span className="text-[10px] text-gray-400">Última corrida: {formatRelative(job.last_run_at)}</span>
+          </div>
         </div>
-        <button onClick={() => setShowNewModal(!showNewModal)} className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-5 py-2.5 transition-all" style={{ fontWeight: 600 }}>
-          <Plus className="w-4 h-4" /> Nuevo Scraping
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleToggleStatus} className="w-9 h-9 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-50">
+            {job.status === "active" ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+          </button>
+          <button onClick={handleDelete} className="w-9 h-9 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-50">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {showNewModal && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 shadow-sm">
-          <h3 className="text-gray-700 text-sm" style={{ fontWeight: 700 }}>Configurar Nuevo Scraping</h3>
-          <div className="flex gap-2">
-            {(["hashtag", "account", "keyword"] as const).map(t => {
-              const Icon = typeIcon[t];
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4">
+          <p className="text-gray-400 text-[10px] uppercase tracking-wider">Menciones</p>
+          <p className="text-2xl text-gray-900 mt-0.5 font-mono" style={{ fontWeight: 900 }}>{mentions.length}</p>
+          <p className="text-gray-400 text-[10px] mt-0.5">{pendingEnrich > 0 ? `${pendingEnrich} procesando` : "Todas analizadas"}</p>
+        </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4">
+          <p className="text-gray-400 text-[10px] uppercase tracking-wider">Positivas</p>
+          <p className="text-2xl text-emerald-600 mt-0.5 font-mono" style={{ fontWeight: 900 }}>{sentimentBreakdown.positive}</p>
+          <p className="text-gray-400 text-[10px] mt-0.5">{mentions.length > 0 ? Math.round(sentimentBreakdown.positive / mentions.length * 100) : 0}%</p>
+        </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4">
+          <p className="text-gray-400 text-[10px] uppercase tracking-wider">Negativas</p>
+          <p className="text-2xl text-red-500 mt-0.5 font-mono" style={{ fontWeight: 900 }}>{sentimentBreakdown.negative}</p>
+          <p className="text-gray-400 text-[10px] mt-0.5">{mentions.length > 0 ? Math.round(sentimentBreakdown.negative / mentions.length * 100) : 0}%</p>
+        </div>
+        <div className="bg-white border border-gray-200/80 rounded-2xl p-4">
+          <p className="text-gray-400 text-[10px] uppercase tracking-wider">Narrativas</p>
+          <p className="text-2xl text-gray-900 mt-0.5 font-mono" style={{ fontWeight: 900 }}>{narratives.length}</p>
+          <p className="text-gray-400 text-[10px] mt-0.5">Clusters activos</p>
+        </div>
+      </div>
+
+      {/* Narrativas (el diferenciador) */}
+      {narratives.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <h3 className="text-gray-900 text-sm" style={{ fontWeight: 700 }}>Narrativas Emergentes</h3>
+            <span className="text-gray-400 text-xs">· Clusters con sentimiento y tasa de crecimiento</span>
+          </div>
+          <div className="space-y-3">
+            {narratives.map((n) => {
+              const isSpike = n.growth_rate > 2;
+              const isNeg = n.sentiment_score < -0.2;
               return (
-                <button key={t} onClick={() => setNewType(t)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors border ${
-                    newType === t ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-500 border-gray-200"
-                  }`} style={{ fontWeight: 600 }}>
-                  <Icon className="w-3 h-3" />{t === "hashtag" ? "Hashtag" : t === "account" ? "Cuenta" : "Keyword"}
-                </button>
+                <div
+                  key={n.id}
+                  className={`rounded-2xl p-4 border ${
+                    isNeg && isSpike ? "bg-red-50/50 border-red-200"
+                    : isSpike ? "bg-amber-50/50 border-amber-200"
+                    : "bg-white border-gray-200/80"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {isNeg ? <AlertTriangle className="w-4 h-4 text-red-500" /> : isSpike ? <TrendingUp className="w-4 h-4 text-amber-500" /> : <Radar className="w-4 h-4 text-gray-400" />}
+                        <h4 className="text-gray-900 text-sm" style={{ fontWeight: 700 }}>{n.title}</h4>
+                      </div>
+                      <p className="text-gray-600 text-sm">{n.summary}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-gray-900 font-mono text-sm" style={{ fontWeight: 700 }}>{n.mention_count}</p>
+                      <p className="text-[10px] text-gray-400">menciones</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-3 text-[11px]">
+                    <span className={`flex items-center gap-1 ${n.growth_rate > 1 ? "text-emerald-600" : "text-gray-500"}`}>
+                      {n.growth_rate > 1 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      <span className="font-mono">{n.growth_rate.toFixed(1)}x</span> 6h
+                    </span>
+                    <span className="flex items-center gap-1 text-gray-500">
+                      <SentimentDot sentiment={n.sentiment_score > 0.2 ? "positive" : n.sentiment_score < -0.2 ? "negative" : "neutral"} />
+                      <span className="font-mono">{n.sentiment_score.toFixed(2)}</span>
+                    </span>
+                    <button onClick={() => navigate("/app/chat")} className="ml-auto text-gray-700 hover:text-gray-900 flex items-center gap-1" style={{ fontWeight: 600 }}>
+                      <MessageSquare className="w-3 h-3" /> Explorar
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
-          <div className="flex gap-2">
-            <input value={newQuery} onChange={e => setNewQuery(e.target.value)}
-              placeholder={newType === "hashtag" ? "#tuhashtag" : newType === "account" ? "@cuenta" : "palabra clave"}
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:border-gray-400 focus:ring-2 focus:ring-gray-200 outline-none" />
-            <button onClick={() => setShowNewModal(false)} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-5 py-2.5 text-sm transition-all" style={{ fontWeight: 600 }}>
-              <Play className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-        {mockJobs.map(job => {
-          const Icon = typeIcon[job.type];
-          const sc = statusConfig[job.status];
-          const active = job.id === selectedJob;
-          return (
-            <button key={job.id} onClick={() => setSelectedJob(job.id)}
-              className={`text-left bg-white border rounded-2xl p-4 transition-all ${
-                active ? "border-gray-900 shadow-sm" : "border-gray-200/80 hover:border-gray-300"
-              }`}>
-              <div className="flex items-center justify-between mb-2">
-                <Icon className="w-4 h-4 text-gray-900" />
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${sc.cls}`} style={{ fontWeight: 600 }}>{sc.label}</span>
-              </div>
-              <p className="text-gray-700 text-sm truncate" style={{ fontWeight: 600 }}>{job.query}</p>
-              <p className="text-gray-400 text-xs mt-1">{job.platforms.join(" · ")}</p>
-              <div className="flex items-center justify-between mt-3">
-                <span className="text-gray-900 text-sm font-mono" style={{ fontWeight: 700 }}>{job.results.toLocaleString()}</span>
-                <span className="text-gray-400 text-[10px]">{job.lastRun}</span>
-              </div>
-              <div className="flex h-1.5 rounded-full overflow-hidden mt-2 gap-0.5">
-                <div className="bg-emerald-400 rounded-full" style={{ width: `${job.sentiment.pos}%` }} />
-                <div className="bg-indigo-400 rounded-full" style={{ width: `${job.sentiment.neu}%` }} />
-                <div className="bg-red-400 rounded-full" style={{ width: `${job.sentiment.neg}%` }} />
-              </div>
+      {/* Filtros + menciones */}
+      <div>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <h3 className="text-gray-900 text-sm mr-2" style={{ fontWeight: 700 }}>Menciones en vivo</h3>
+          {(["all", "positive", "neutral", "negative"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                filter === f ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+              }`}
+              style={{ fontWeight: 600 }}
+            >
+              {f === "all" ? "Todas" : f === "positive" ? "Positivas" : f === "negative" ? "Negativas" : "Neutrales"}
             </button>
-          );
-        })}
+          ))}
+        </div>
+
+        {filteredMentions.length === 0 ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-10 text-center">
+            <Radar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-400 text-sm">Aún no hay menciones procesadas.</p>
+            <p className="text-gray-400 text-xs mt-1">
+              {runs.filter((r) => r.status === "running").length > 0
+                ? "Scrapers corriendo en Apify..."
+                : "Espera unos minutos o revisa tu APIFY_TOKEN."}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredMentions.slice(0, 50).map((m) => (
+              <a
+                key={m.id}
+                href={m.url ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block bg-white border border-gray-200/80 rounded-xl p-3 hover:border-gray-300 transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <SentimentDot sentiment={m.sentiment} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-[11px] mb-1">
+                      <span className="rounded-full px-1.5 py-0.5 text-[10px]" style={{ backgroundColor: PLATFORM_COLORS[m.platform as ScrapingPlatform] + "15", color: PLATFORM_COLORS[m.platform as ScrapingPlatform] }}>
+                        {PLATFORM_LABELS[m.platform as ScrapingPlatform] ?? m.platform}
+                      </span>
+                      {m.author && <span className="text-gray-600" style={{ fontWeight: 600 }}>@{m.author}</span>}
+                      <span className="text-gray-400">· {formatRelative(m.posted_at)}</span>
+                      {m.url && <ExternalLink className="w-3 h-3 text-gray-300 ml-auto" />}
+                    </div>
+                    <p className="text-gray-700 text-sm line-clamp-2">{m.text}</p>
+                    {m.topics && m.topics.length > 0 && (
+                      <div className="flex gap-1 mt-1.5 flex-wrap">
+                        {m.topics.slice(0, 4).map((t) => (
+                          <span key={t} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================================================
+// Lista principal de jobs
+// ==========================================================================
+export function SocialScraping() {
+  const [jobs, setJobs] = useState<ScrapingJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const reload = async () => {
+    try {
+      const data = await listJobs();
+      setJobs(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { reload(); }, []);
+
+  if (selectedId) {
+    return (
+      <JobDetailView
+        jobId={selectedId}
+        onBack={() => { setSelectedId(null); reload(); }}
+        onDeleted={() => { setSelectedId(null); reload(); }}
+      />
+    );
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 pb-20 lg:pb-8 space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-col md:flex-row md:items-center">
+        <div>
+          <h1 className="text-2xl md:text-3xl text-gray-900 tracking-tight" style={{ fontWeight: 900 }}>Social Scraping</h1>
+          <p className="text-gray-400 text-sm mt-1">Monitorea hashtags, cuentas y keywords en redes sociales con análisis de narrativas vía IA.</p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-5 py-2.5 text-sm transition-all hover:shadow-lg"
+          style={{ fontWeight: 600 }}
+        >
+          <Plus className="w-4 h-4" /> Nuevo scraping
+        </button>
       </div>
 
-      {activeJob && (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-white border border-gray-200/80 rounded-2xl p-5">
-              <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-4" style={{ fontWeight: 600 }}>Volumen de Menciones (24h) — {activeJob.query}</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={volumeData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="hour" stroke="#d1d5db" tick={{ fontSize: 10, fill: "#9ca3af" }} />
-                  <YAxis stroke="#d1d5db" tick={{ fontSize: 10, fill: "#9ca3af" }} />
-                  <Tooltip contentStyle={tt} />
-                  <Bar dataKey="mentions" fill="#111827" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="bg-white border border-gray-200/80 rounded-2xl p-5">
-              <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-2" style={{ fontWeight: 600 }}>Por Plataforma</h3>
-              <ResponsiveContainer width="100%" height={140}>
-                <PieChart>
-                  <Pie data={platformBreakdown} cx="50%" cy="50%" innerRadius={35} outerRadius={60} dataKey="value" stroke="none">
-                    {platformBreakdown.map(p => <Cell key={p.name} fill={p.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={tt} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-1.5 mt-1">
-                {platformBreakdown.map(p => (
-                  <div key={p.name} className="flex items-center justify-between text-[11px]">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-                      <span className="text-gray-500">{p.name}</span>
-                    </span>
-                    <span className="text-gray-700 font-mono" style={{ fontWeight: 600 }}>{p.value}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-gray-200/80 rounded-2xl p-5">
-            <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-4" style={{ fontWeight: 600 }}>Evolucion de Sentimiento (7 dias)</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={sentimentTimeline}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="day" stroke="#d1d5db" tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                <YAxis stroke="#d1d5db" tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                <Tooltip contentStyle={tt} />
-                <Line type="monotone" dataKey="positivo" stroke="#10b981" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="neutral" stroke="#6366f1" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="negativo" stroke="#ef4444" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="bg-white border border-gray-200/80 rounded-2xl p-5">
-              <h3 className="text-gray-400 text-xs uppercase tracking-wider mb-4" style={{ fontWeight: 600 }}>Top Keywords</h3>
-              <div className="space-y-2">
-                {[
-                  { kw: "natural", count: 842, sentiment: "positive" as const },
-                  { kw: "receta", count: 621, sentiment: "positive" as const },
-                  { kw: "precio", count: 534, sentiment: "neutral" as const },
-                  { kw: "piel", count: 498, sentiment: "positive" as const },
-                  { kw: "envio", count: 312, sentiment: "negative" as const },
-                  { kw: "organico", count: 287, sentiment: "positive" as const },
-                  { kw: "queja", count: 156, sentiment: "negative" as const },
-                  { kw: "humectante", count: 143, sentiment: "positive" as const },
-                  { kw: "recomendacion", count: 132, sentiment: "positive" as const },
-                  { kw: "devolucion", count: 89, sentiment: "negative" as const },
-                ].map((k, i) => {
-                  const SIcon = sentimentIcon[k.sentiment];
-                  return (
-                    <div key={k.kw} className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                      <span className="text-gray-300 text-[10px] w-4 text-right">{i + 1}</span>
-                      <span className="text-gray-700 text-sm flex-1" style={{ fontWeight: 500 }}>{k.kw}</span>
-                      <SIcon className={`w-3 h-3 ${sentimentColor[k.sentiment]}`} />
-                      <span className="text-gray-400 text-xs font-mono">{k.count}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 bg-white border border-gray-200/80 rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-gray-400 text-xs uppercase tracking-wider" style={{ fontWeight: 600 }}>Menciones en Vivo</h3>
-                <div className="flex gap-1">
-                  {(["all", "positive", "negative", "neutral"] as const).map(f => (
-                    <button key={f} onClick={() => setFilterSentiment(f)}
-                      className={`text-[10px] px-2 py-1 rounded-md transition-colors ${filterSentiment === f ? "bg-gray-900 text-white" : "text-gray-400 hover:text-gray-600"}`}
-                      style={{ fontWeight: 600 }}>
-                      {f === "all" ? "Todos" : f === "positive" ? "Pos" : f === "negative" ? "Neg" : "Neu"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-2">
-                {filteredMentions.map(m => {
-                  const SIcon = sentimentIcon[m.sentiment];
-                  return (
-                    <div key={m.id} className="p-3 rounded-xl bg-gray-50/50 border border-gray-100 hover:border-gray-200 transition-colors">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500" style={{ fontWeight: 600 }}>{m.platform}</span>
-                        <span className="text-gray-600 text-xs" style={{ fontWeight: 600 }}>{m.user}</span>
-                        <span className="text-gray-300 text-[10px] ml-auto">{m.time}</span>
-                      </div>
-                      <p className="text-gray-600 text-sm">{m.text}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className={`flex items-center gap-1 text-[10px] ${sentimentColor[m.sentiment]}`}>
-                          <SIcon className="w-3 h-3" /> {m.sentiment === "positive" ? "Positivo" : m.sentiment === "negative" ? "Negativo" : "Neutral"}
-                        </span>
-                        <span className="flex items-center gap-1 text-gray-400 text-[10px]">
-                          <Eye className="w-3 h-3" /> {m.engagement}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </>
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>
       )}
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-gray-400 animate-spin" /></div>
+      ) : jobs.length === 0 ? (
+        <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-200 rounded-2xl p-8 md:p-10">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <Radar className="w-6 h-6 text-amber-700" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl text-gray-900" style={{ fontWeight: 700 }}>Empieza a escuchar la conversación</h2>
+              <p className="text-gray-600 text-sm mt-2 max-w-lg">
+                Crea tu primer scraping para monitorear qué están diciendo sobre tu marca, competidores o categoría.
+                Runtu clasifica cada mención y detecta narrativas emergentes.
+              </p>
+              <button
+                onClick={() => setShowModal(true)}
+                className="mt-4 bg-gray-900 hover:bg-gray-800 text-white rounded-xl px-5 py-2.5 text-sm flex items-center gap-2"
+                style={{ fontWeight: 600 }}
+              >
+                <Plus className="w-4 h-4" /> Crear el primero
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {jobs.map((j) => {
+            const Icon = TYPE_ICONS[j.type];
+            return (
+              <button
+                key={j.id}
+                onClick={() => setSelectedId(j.id)}
+                className="text-left bg-white border border-gray-200/80 rounded-2xl p-4 hover:border-gray-300 hover:shadow-sm transition-all"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 text-sm truncate" style={{ fontWeight: 600 }}>{j.query}</p>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${j.status === "active" ? "bg-emerald-50 text-emerald-600" : "bg-gray-100 text-gray-500"}`} style={{ fontWeight: 600 }}>
+                        {j.status === "active" ? "Activo" : "Pausado"}
+                      </span>
+                      <span className="text-[10px] text-gray-400">{j.platforms.length} plataforma{j.platforms.length > 1 ? "s" : ""}</span>
+                      <span className="text-[10px] text-gray-400">· {formatRelative(j.last_run_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {showModal && (
+        <CreateJobModal
+          onClose={() => setShowModal(false)}
+          onCreated={(j) => { setJobs((p) => [j, ...p]); setSelectedId(j.id); }}
+        />
+      )}
+
+      <div className="mt-8 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-xs text-gray-500 flex items-start gap-3">
+        <Radio className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-gray-700" style={{ fontWeight: 600 }}>¿Cómo funciona?</p>
+          <p className="mt-1">Runtu usa <span className="font-mono">Apify</span> para recolectar menciones de redes sociales, las clasifica con <span className="font-mono">Gemini</span> (sentimiento + temas) y agrupa menciones similares en <span className="font-mono">narrativas emergentes</span>. Cuando una narrativa crece rápido y es emocionalmente significativa, genera una alerta.</p>
+        </div>
+      </div>
     </div>
   );
 }
