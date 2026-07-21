@@ -1,11 +1,12 @@
 import { lazy, Suspense, type ReactNode } from "react";
 import { ClerkProvider } from "@clerk/clerk-react";
-import { ArrowRight, Check, Download, FlaskConical, Gauge, LockKeyhole, MonitorDown, Pause, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Download, FlaskConical, Gauge, LockKeyhole, MonitorDown, Pause, Share2, ShieldCheck } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
 import "../../styles/lab-shell.css";
 import { ProtectedLab, SessionBadge } from "../auth/ControlPlane";
 
 const AgentWorkspace = lazy(() => import("./Lab").then(({ Lab }) => ({ default: Lab })));
+const FormsDashboard = lazy(() => import("./FormsDashboard"));
 
 type StageKey = "radiografia" | "arquitectura" | "escala" | "revision" | "instalar";
 
@@ -136,6 +137,7 @@ function Nido() {
             <div className="shell-agent-meta"><span>v0.2.0</span><span>20/20 BASE</span><ArrowRight size={16} /></div>
           </a>
           <a className="shell-new-card" href="/lab/nuevo"><span>+</span><strong>INCUBAR NUEVA IDEA</strong><small>Empieza con un molde probado.</small></a>
+          <a className="shell-new-card" href="/lab/formularios"><Share2 size={24} /><strong>FORMULARIOS COMPARTIBLES</strong><small>Crea un enlace con opt-in para WhatsApp o web.</small></a>
         </div>
       </section>
     </LabFrame>
@@ -188,6 +190,7 @@ function RouteContent({ path }: { path: string }) {
   if (path.startsWith("/a/")) return <Suspense fallback={<WorkspaceLoading />}><AgentWorkspace surface="installed" /></Suspense>;
   if (path === "/lab" || path === "/lab/") return <Nido />;
   if (path === "/lab/nuevo") return <NewEgg />;
+  if (path === "/lab/formularios") return <Suspense fallback={<WorkspaceLoading />}><FormsDashboard /></Suspense>;
   if (path.endsWith("/escala")) return <Suspense fallback={<WorkspaceLoading />}><AgentWorkspace /></Suspense>;
   if (path.endsWith("/radiografia")) return <StageShell stage="radiografia" />;
   if (path.endsWith("/arquitectura")) return <StageShell stage="arquitectura" />;
