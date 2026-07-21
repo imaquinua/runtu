@@ -54,8 +54,11 @@ try {
   const [storedEval] = await admin`select source_type, cases, passed, evidence from runtu.eval_runs where agent_version_id = ${firstImport.version_id}`;
   if (storedEval?.source_type !== 'replay' || storedEval?.cases !== 20 || storedEval?.passed !== 20) throw new Error('La evidencia no quedó ligada a la versión.');
   if (!scanPortablePayload(payload).safe) throw new Error('El paquete canónico activó el detector de secretos.');
+  if (scanPortablePayload({ ...payload, instructions: `${payload.instructions}\napi_key='sk-proj-example-secret-value-1234567890'` }).safe) {
+    throw new Error('El escáner no bloqueó el secreto simulado.');
+  }
 
-  console.log(`PASS: v0.2.0 inmutable; checksum ${checksum.slice(0, 12)}…; replay 20/20 ligado; REVIEWER solo lectura; paquete limpio.`);
+  console.log(`PASS: v0.2.0 inmutable; checksum ${checksum.slice(0, 12)}…; replay 20/20 ligado; REVIEWER solo lectura; secreto simulado bloqueado.`);
 } finally {
   if (organization?.id) await admin`delete from runtu.organizations where id = ${organization.id}`;
 }
