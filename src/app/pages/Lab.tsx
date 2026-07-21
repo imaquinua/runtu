@@ -40,7 +40,7 @@ function EmptyState() {
     </div>
   );
 }
-export function Lab() {
+export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
   const [notes, setNotes] = useState(example);
   const [run, setRun] = useState<Run | null>(null);
   const [error, setError] = useState("");
@@ -75,8 +75,8 @@ export function Lab() {
     <main className="lab-page">
       <header className="lab-nav">
         <a className="lab-brand" href="/" aria-label="Volver a Runtu"><RuntuMark /><span>runtu</span></a>
-        <div className="lab-nav-status"><i /> LAB PRIVADO · V0.2.0</div>
-        <a className="lab-back" href="/"><ArrowLeft size={15} /> Incubadora</a>
+        <div className="lab-nav-status"><i /> {surface === "installed" ? "WEB APP PRIVADA" : "LAB PRIVADO"} · V0.2.0</div>
+        <a className="lab-back" href={surface === "installed" ? "/lab/minuta-comite/afuera" : "/lab"}><ArrowLeft size={15} /> {surface === "installed" ? "Afuera" : "El Nido"}</a>
       </header>
 
       <section className="lab-heading">
@@ -165,7 +165,7 @@ export function Lab() {
         </section>
       </section>
 
-      <footer className="lab-footer"><span>RUNTU LAB · CANDIDATO TÉCNICO</span><span>Una iniciativa de Imaquinua</span></footer>
+      <footer className="lab-footer"><span>{surface === "installed" ? "AGENTE INSTALADO" : "RUNTU LAB · CANDIDATO TÉCNICO"}</span><span>Una iniciativa de Imaquinua</span></footer>
     </main>
   );
 }

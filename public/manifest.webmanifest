@@ -1,0 +1,20 @@
+{
+  "id": "/lab",
+  "name": "Runtu Lab — Incubadora de agentes",
+  "short_name": "Runtu Lab",
+  "description": "Incuba, prueba e instala agentes con evidencia.",
+  "lang": "es-PE",
+  "start_url": "/lab",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#171219",
+  "theme_color": "#171219",
+  "icons": [
+    {
+      "src": "/runtu-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

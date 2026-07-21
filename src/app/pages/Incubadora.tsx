@@ -140,7 +140,7 @@ function Egg({ progress = 72 }: { progress?: number }) {
 }
 
 export function Incubadora() {
-  const pilotHref = "mailto:hola@imaquinua.com?subject=Quiero%20incubar%20un%20agente%20con%20Runtu";
+  const pilotHref = "/lab/nuevo";
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -184,7 +184,7 @@ export function Incubadora() {
           </p>
           <div className="inc-actions">
             <a className="inc-button" href={pilotHref}>
-              Poner mi primer huevo <ArrowRight size={17} aria-hidden="true" />
+              Incubar un agente <ArrowRight size={17} aria-hidden="true" />
             </a>
             <a className="inc-text-link" href="#metodo">Ver cómo se incuba <ChevronRight size={16} /></a>
           </div>

@@ -28,13 +28,34 @@ La portada incorpora el plan de ejecución de 12 semanas: elección del proceso,
 - Vite + React + TypeScript
 - CSS propio con identidad Runtu
 - Vercel
+- Base PWA con manifest y service worker
 
 La página pública no requiere base de datos, autenticación ni secretos.
+
+## Fast Track · Lab navegable
+
+La rama `feat/runtu-fast-track` incorpora el esqueleto responsive del recorrido
+de incubación sin fingir estado persistido:
+
+- `/lab`: El Nido;
+- `/lab/nuevo`: selección del molde;
+- `/lab/minuta-comite/radiografia`;
+- `/lab/minuta-comite/arquitectura`;
+- `/lab/minuta-comite/escala`: ejecución funcional de Huevo 0;
+- `/lab/minuta-comite/revision`;
+- `/lab/minuta-comite/eclosion`;
+- `/lab/minuta-comite/instalar`;
+- `/lab/minuta-comite/afuera`;
+- `/a/minuta-comite`: superficie del agente instalado.
+
+Las rutas que aún no tienen control plane muestran explícitamente que son una
+base visual y no mutan estado. La PWA genérica abre en `/lab`; la instalación
+por agente y los iconos raster finales se completan en el Día 8.
 
 ## Huevo 0 · Minuta de Comité
 
 La función protegida `POST /api/minuta` ejecuta el primer agente con
-`gpt-5-nano`. Requiere `OPENAI_API_KEY` y `RUNTU_LAB_TOKEN` como secretos de
+`gpt-5.6-luna`. Requiere `OPENAI_API_KEY` y `RUNTU_LAB_TOKEN` como secretos de
 servidor en Vercel. La ruta permanece cerrada si falta el token del laboratorio
 y nunca expone la clave de OpenAI al navegador.
 
