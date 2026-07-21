@@ -45,15 +45,26 @@ const safeguards = [
   { icon: RotateCcw, title: "Siempre reversible", text: "Pausa, cuarentena y rollback forman parte del despliegue." },
 ];
 
+function RuntuMark({ size = 28, inverse = false }: { size?: number; inverse?: boolean }) {
+  return (
+    <svg viewBox="0 0 200 200" width={size} height={size} aria-hidden="true">
+      <path
+        d="M 118 41 C 70 44 45 80 45 115 C 45 152 70 176 100 176 C 130 176 155 152 155 115 C 155 96 150 76 142 62"
+        fill="none"
+        stroke={inverse ? "#FDFAF2" : "#1B1622"}
+        strokeWidth="13"
+        strokeLinecap="round"
+      />
+      <circle cx="100" cy="120" r="15" fill="#FFD21E" />
+    </svg>
+  );
+}
+
 function Egg({ progress = 72 }: { progress?: number }) {
   return (
     <div className="inc-egg-wrap" aria-label={`Incubación al ${progress}%`}>
       <div className="inc-egg-glow" />
-      <div className="inc-egg">
-        <span className="inc-crack inc-crack-a" />
-        <span className="inc-crack inc-crack-b" />
-        <span className="inc-yolk" />
-      </div>
+      <div className="inc-egg"><RuntuMark size={150} inverse /></div>
     </div>
   );
 }
@@ -79,7 +90,7 @@ export function Incubadora() {
     <main className="inc-page">
       <nav className="inc-nav" aria-label="Navegación principal">
         <a className="inc-brand" href="#inicio" aria-label="Runtu, volver al inicio">
-          <span className="inc-brand-mark" aria-hidden="true"><span /></span>
+          <RuntuMark />
           <span>runtu</span>
         </a>
         <div className="inc-nav-links">
@@ -219,7 +230,7 @@ export function Incubadora() {
 
       <footer className="inc-footer">
         <a className="inc-brand" href="#inicio">
-          <span className="inc-brand-mark" aria-hidden="true"><span /></span>
+          <RuntuMark />
           <span>runtu</span>
         </a>
         <p>Agentes que nacen con criterio.</p>
