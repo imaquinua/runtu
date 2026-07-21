@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { AlertTriangle, ArrowLeft, Check, Clock3, FlaskConical, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
+import { useControlPlane } from "../auth/ControlPlane";
 import "../../styles/lab.css";
 
 type Decision = { decision: string; owner: string; due_date: string };
@@ -51,6 +52,7 @@ function EmptyState() {
   );
 }
 export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
+  const { getToken, organization } = useControlPlane();
   const [notes, setNotes] = useState(initialNotes);
   const [run, setRun] = useState<Run | null>(null);
   const [error, setError] = useState("");
@@ -75,14 +77,15 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
     setError("");
     setReviewed(false);
     try {
+      const token = await getToken();
       const response = await fetch("/api/minuta", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes, model: "gpt-5.6-luna" }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ notes, model: "gpt-5.6-luna", organizationId: organization.id }),
       });
       const body = await response.json();
       if (!response.ok) {
-        throw new Error(response.status === 401 ? "Este laboratorio requiere acceso privado." : "No pudimos incubar esta minuta.");
+        throw new Error(response.status === 401 ? "Este laboratorio requiere acceso privado." : response.status === 429 ? "Tu organización alcanzó la cuota de ejecuciones." : "No pudimos incubar esta minuta.");
       }
       setRun(body);
     } catch (cause) {
@@ -96,7 +99,7 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
     <main className="lab-page">
       <header className="lab-nav">
         <a className="lab-brand" href="/" aria-label="Volver a Runtu"><RuntuMark /><span>runtu</span></a>
-        <div className="lab-nav-status"><i /> {surface === "installed" ? "WEB APP PRIVADA" : "LAB PRIVADO"} · V0.2.0</div>
+        <div className="lab-nav-status"><i /> {organization.name} · {surface === "installed" ? "WEB APP PRIVADA" : "LAB PRIVADO"} · V0.2.0</div>
         <a className="lab-back" href={surface === "installed" ? "/lab/minuta-comite/afuera" : "/lab"}><ArrowLeft size={15} /> {surface === "installed" ? "Afuera" : "El Nido"}</a>
       </header>
 

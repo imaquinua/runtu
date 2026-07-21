@@ -1,5 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { AGENT_INSTRUCTIONS, OUTPUT_SCHEMA } from "./_agent/config.js";
+import { requireUser } from "./_lib/auth.js";
+import { consumeRunQuota } from "./_lib/database.js";
 
 export const config = { maxDuration: 60 };
 const ALLOWED_MODELS = new Set(["gpt-5-nano", "gpt-5.4-nano", "gpt-5.6-luna"]);
@@ -28,14 +30,29 @@ export default async function handler(req, res) {
 
   const bearer = req.headers.authorization?.replace(/^Bearer\s+/i, "");
   const protectedPreview = process.env.VERCEL_ENV === "preview";
+  const clerkUser = process.env.CLERK_SECRET_KEY ? await requireUser(req) : null;
+  if (process.env.CLERK_SECRET_KEY && !clerkUser) return res.status(401).json({ error: "unauthorized" });
   if (!protectedPreview && !process.env.RUNTU_LAB_TOKEN) return res.status(503).json({ error: "lab_not_configured" });
-  if (!protectedPreview && !authorized(bearer, process.env.RUNTU_LAB_TOKEN)) return res.status(401).json({ error: "unauthorized" });
+  if (!process.env.CLERK_SECRET_KEY && !protectedPreview && !authorized(bearer, process.env.RUNTU_LAB_TOKEN)) return res.status(401).json({ error: "unauthorized" });
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: "openai_not_configured" });
 
   const notes = req.body?.notes;
   const model = ALLOWED_MODELS.has(req.body?.model) ? req.body.model : "gpt-5.6-luna";
   if (typeof notes !== "string") return res.status(400).json({ error: "notes_must_be_text" });
   if (notes.length > 30_000) return res.status(413).json({ error: "notes_too_long" });
+
+  if (clerkUser) {
+    const organizationId = req.body?.organizationId;
+    if (typeof organizationId !== "string" || !/^[0-9a-f-]{36}$/i.test(organizationId)) {
+      return res.status(400).json({ error: "organization_required" });
+    }
+    try {
+      await consumeRunQuota(clerkUser.id, organizationId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      return res.status(message.includes("quota_exhausted") ? 429 : 403).json({ error: message.includes("quota_exhausted") ? "quota_exhausted" : "organization_access_denied" });
+    }
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);

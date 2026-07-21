@@ -1,7 +1,9 @@
 import { lazy, Suspense, type ReactNode } from "react";
+import { ClerkProvider } from "@clerk/clerk-react";
 import { ArrowRight, Check, Download, FlaskConical, Gauge, LockKeyhole, MonitorDown, Pause, ShieldCheck } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
 import "../../styles/lab-shell.css";
+import { ProtectedLab, SessionBadge } from "../auth/ControlPlane";
 
 const AgentWorkspace = lazy(() => import("./Lab").then(({ Lab }) => ({ default: Lab })));
 
@@ -104,7 +106,8 @@ function LabFrame({ active, children }: { active?: StageKey; children: ReactNode
       <header className="shell-header">
         <a className="shell-brand" href="/" aria-label="Runtu, volver al inicio"><RuntuMark inverse /><span>runtu</span></a>
         <span className="shell-lab-label">LAB-01 · INCUBADORA</span>
-        <div className="shell-save"><i /> PREVIEW · DÍA 2</div>
+        <div className="shell-save"><i /> PREVIEW · DÍA 3</div>
+        <SessionBadge />
       </header>
       <nav className="shell-stages" aria-label="Etapas de incubación">
         {stages.map((stage, index) => (
@@ -181,7 +184,7 @@ function WorkspaceLoading() {
   return <div className="shell-workspace-loading" role="status">CARGANDO EL AGENTE…</div>;
 }
 
-export default function LabRouter({ path }: { path: string }) {
+function RouteContent({ path }: { path: string }) {
   if (path.startsWith("/a/")) return <Suspense fallback={<WorkspaceLoading />}><AgentWorkspace surface="installed" /></Suspense>;
   if (path === "/lab" || path === "/lab/") return <Nido />;
   if (path === "/lab/nuevo") return <NewEgg />;
@@ -193,4 +196,16 @@ export default function LabRouter({ path }: { path: string }) {
   if (path.endsWith("/instalar")) return <StageShell stage="instalar" />;
   if (path.endsWith("/afuera")) return <StageShell stage="afuera" />;
   return <Nido />;
+}
+
+export default function LabRouter({ path }: { path: string }) {
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  if (!publishableKey) {
+    return <main className="shell-session-state"><strong>ACCESO AÚN NO CONFIGURADO</strong><p>Falta la llave pública de Clerk para este entorno.</p><a href="/">Volver al inicio</a></main>;
+  }
+  return (
+    <ClerkProvider publishableKey={publishableKey} afterSignOutUrl="/">
+      <ProtectedLab><RouteContent path={path} /></ProtectedLab>
+    </ClerkProvider>
+  );
 }
