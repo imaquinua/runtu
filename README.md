@@ -23,6 +23,7 @@ Una plataforma que convierte datos caóticos (redes sociales, inversión publici
 | Módulo | Ruta | Estado |
 |--------|------|--------|
 | Landing | `/` | ✅ UI lista |
+| Incubadora de agentes | `/incubadora` | 🟡 Experiencia de validación publicada |
 | Auth (Login/Register) | `/login`, `/register` | ✅ Funcional con Supabase |
 | Onboarding | `/app/onboarding` | ✅ Guarda en BD |
 | Dashboard | `/app` | 🟡 UI lista, datos mock |
@@ -124,6 +125,13 @@ vercel --prod
 
 ## Roadmap
 
+### Línea de validación — Incubadora de agentes
+- Validar un único agente interno de conocimiento/operaciones
+- Convertir Radiografía → Arquitectura → Escala → Siembra en compuertas con evidencia
+- Desplegar primero en web; Slack como segundo canal
+- Incorporar versiones, evaluaciones, aprobación humana, presupuesto y rollback
+- Mantener esta línea separada del Marketing OS hasta validar demanda y posicionamiento
+
 ### Fase 2 — MMM Engine real (próximo)
 - Parsear CSV del usuario en `src/app/pages/MMMEngine.tsx`
 - Regresión lineal múltiple real con `ml-regression` + `csv-parse`
@@ -178,4 +186,4 @@ git show v1-final:runtu_app/src/lib/chat/engine.ts
 
 ---
 
-*Última actualización: abril 2026*
+*Última actualización: julio 2026*

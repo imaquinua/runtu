@@ -33,6 +33,9 @@ export function Landing() {
           <span className="text-gray-900 text-sm" style={{ fontWeight: 700 }}>Runtu<span className="text-amber-600">.tech</span></span>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/incubadora")} className="hidden sm:block text-gray-500 hover:text-gray-900 px-3 py-2 text-sm transition-colors">
+            Incubadora de agentes
+          </button>
           <button onClick={() => navigate("/login")} className="text-gray-500 hover:text-gray-900 px-4 py-2 text-sm transition-colors">
             Iniciar sesion
           </button>

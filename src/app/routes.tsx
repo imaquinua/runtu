@@ -13,9 +13,11 @@ import { MMMEngine } from "./pages/MMMEngine";
 import { ContentCalendar } from "./pages/ContentCalendar";
 import { Integrations } from "./pages/Integrations";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Incubadora } from "./pages/Incubadora";
 
 export const router = createBrowserRouter([
   { path: "/", Component: Landing },
+  { path: "/incubadora", Component: Incubadora },
   { path: "/login", Component: Login },
   { path: "/register", Component: Register },
   {
