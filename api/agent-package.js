@@ -1,6 +1,6 @@
 import { requireUser } from "./_lib/auth.js";
 import { claimQuery, database } from "./_lib/database.js";
-import { payloadChecksum, portableInventory, scanPortablePayload } from "./_agent/package.js";
+import { definitionChecksum, payloadChecksum, portableInventory, scanPortablePayload } from "./_agent/package.js";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       claimQuery(transaction, user.id),
       transaction`
         select version_row.manifest, version_row.instructions, version_row.output_schema,
-               version_row.checksum_sha256, eval.evidence
+               version_row.checksum_sha256, version_row.checksum_scope, eval.evidence
         from runtu.agent_versions version_row
         join runtu.eval_runs eval on eval.agent_version_id = version_row.id
         where version_row.id = ${versionId} and version_row.organization_id = ${organizationId}
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     if (!row) return res.status(404).json({ error: 'package_not_available' });
 
     const payload = { manifest: row.manifest, instructions: row.instructions, output_schema: row.output_schema, evaluation: row.evidence };
-    const calculatedChecksum = payloadChecksum(payload);
+    const calculatedChecksum = row.checksum_scope === 'definition' ? definitionChecksum(payload) : payloadChecksum(payload);
     if (calculatedChecksum !== row.checksum_sha256) return res.status(409).json({ error: 'checksum_mismatch' });
     const scan = scanPortablePayload(payload);
     if (!scan.safe) return res.status(409).json({ error: 'package_contains_secret_pattern' });

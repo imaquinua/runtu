@@ -8,6 +8,8 @@ import { ProtectedLab, SessionBadge } from "../auth/ControlPlane";
 const AgentWorkspace = lazy(() => import("./Lab").then(({ Lab }) => ({ default: Lab })));
 const FormsDashboard = lazy(() => import("./FormsDashboard"));
 const AgentArchitecture = lazy(() => import("./AgentArchitecture"));
+const Radiography = lazy(() => import("./Radiography"));
+const ScaleGate = lazy(() => import("./ScaleGate"));
 
 type StageKey = "radiografia" | "arquitectura" | "escala" | "revision" | "instalar";
 
@@ -108,7 +110,7 @@ function LabFrame({ active, children }: { active?: StageKey; children: ReactNode
       <header className="shell-header">
         <a className="shell-brand" href="/" aria-label="Runtu, volver al inicio"><RuntuMark inverse /><span>runtu</span></a>
         <span className="shell-lab-label">LAB-01 · INCUBADORA</span>
-        <div className="shell-save"><i /> PREVIEW · DÍA 3</div>
+        <div className="shell-save"><i /> PREVIEW · DÍA 5</div>
         <SessionBadge />
       </header>
       <nav className="shell-stages" aria-label="Etapas de incubación">
@@ -192,8 +194,8 @@ function RouteContent({ path }: { path: string }) {
   if (path === "/lab" || path === "/lab/") return <Nido />;
   if (path === "/lab/nuevo") return <NewEgg />;
   if (path === "/lab/formularios") return <Suspense fallback={<WorkspaceLoading />}><FormsDashboard /></Suspense>;
-  if (path.endsWith("/escala")) return <Suspense fallback={<WorkspaceLoading />}><AgentWorkspace /></Suspense>;
-  if (path.endsWith("/radiografia")) return <StageShell stage="radiografia" />;
+  if (path.endsWith("/escala")) return <Suspense fallback={<WorkspaceLoading />}><ScaleGate /></Suspense>;
+  if (path.endsWith("/radiografia")) return <Suspense fallback={<WorkspaceLoading />}><Radiography /></Suspense>;
   if (path.endsWith("/arquitectura")) return <Suspense fallback={<WorkspaceLoading />}><AgentArchitecture /></Suspense>;
   if (path.endsWith("/revision")) return <StageShell stage="revision" />;
   if (path.endsWith("/eclosion")) return <StageShell stage="eclosion" />;

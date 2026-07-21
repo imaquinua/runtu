@@ -73,6 +73,10 @@ export function payloadChecksum(payload = huevo0Payload()) {
   return createHash('sha256').update(canonicalStringify(payload)).digest('hex');
 }
 
+export function definitionChecksum({ manifest, instructions, output_schema }) {
+  return createHash('sha256').update(canonicalStringify({ manifest, instructions, output_schema })).digest('hex');
+}
+
 export function portableInventory(payload) {
   return [
     { path: 'agent.json', media_type: 'application/json', bytes: Buffer.byteLength(canonicalStringify(payload.manifest)) },
