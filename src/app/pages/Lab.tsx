@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { AlertTriangle, ArrowLeft, Check, Clock3, FlaskConical, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Check, Clock3, FlaskConical, RotateCcw, ShieldCheck, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
 import { useControlPlane } from "../auth/ControlPlane";
 import "../../styles/lab.css";
@@ -23,6 +23,28 @@ type Run = {
     model: string;
     latency_ms: number;
     usage?: { input_tokens?: number; output_tokens?: number };
+    run_id: string | null;
+    source_type: "real";
+    agent_version: string;
+    checksum: string | null;
+    deployment_id: string | null;
+    remaining_quota: number | null;
+    store: false;
+    evaluation: RuntimeContext["evaluation"];
+  };
+};
+
+export type RuntimeContext = {
+  deploymentId: string;
+  versionId: string;
+  version: string;
+  checksum: string;
+  model: string;
+  state: "ACTIVE" | "PAUSED";
+  retention: string;
+  evaluation: null | {
+    reportId: string; sourceType: "real" | "replay"; cases: number; passed: number;
+    version: string; checksum: string; criticalCases: string[];
   };
 };
 
@@ -31,16 +53,6 @@ Julia publica la nueva política de devoluciones el 23/07/2026.
 Omar capacita a soporte el 25/07/2026.
 Nina validará el impacto en reclamos el 05/08/2026.
 La fiesta de aniversario se verá en otra reunión.`;
-
-const notesStorageKey = "runtu:lab:minuta-comite:notes:v1";
-
-function initialNotes() {
-  try {
-    return window.localStorage.getItem(notesStorageKey)?.slice(0, 30_000) || example;
-  } catch {
-    return example;
-  }
-}
 
 function EmptyState() {
   return (
@@ -51,41 +63,55 @@ function EmptyState() {
     </div>
   );
 }
-export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
+export function Lab({ surface = "lab", initialContext = null }: { surface?: "lab" | "installed"; initialContext?: RuntimeContext | null }) {
   const { getToken, organization } = useControlPlane();
-  const [notes, setNotes] = useState(initialNotes);
+  const [notes, setNotes] = useState(example);
+  const [context, setContext] = useState<RuntimeContext | null>(initialContext);
   const [run, setRun] = useState<Run | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [reviewed, setReviewed] = useState(false);
+  const [anonymized, setAnonymized] = useState(false);
+  const [feedback, setFeedback] = useState<"CORRECT" | "INCORRECT" | null>(null);
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
+  const usingExample = notes.trim() === example.trim();
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
+    if (initialContext) return;
+    let active = true;
+    async function loadContext() {
       try {
-        window.localStorage.setItem(notesStorageKey, notes);
-      } catch {
-        // El input sigue funcionando aunque el navegador bloquee almacenamiento.
-      }
-    }, 300);
-    return () => window.clearTimeout(timeout);
-  }, [notes]);
+        const token = await getToken();
+        const query = new URLSearchParams({ organizationId: organization.id });
+        const response = await fetch(`/api/minuta?${query}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!response.ok) throw new Error('No hay una versión activa para ejecutar.');
+        const body = await response.json();
+        if (active) setContext(body.context);
+      } catch (cause) { if (active) setError(cause instanceof Error ? cause.message : 'No pudimos abrir la Escala.'); }
+    }
+    loadContext();
+    return () => { active = false; };
+  }, [getToken, initialContext, organization.id]);
 
   async function incubate(event: FormEvent) {
     event.preventDefault();
-    if (!notes.trim() || loading) return;
+    if (!notes.trim() || loading || !context || (!usingExample && !anonymized)) return;
     setLoading(true);
     setError("");
-    setReviewed(false);
+    setFeedback(null);
     try {
       const token = await getToken();
       const response = await fetch("/api/minuta", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ notes, model: "gpt-5.6-luna", organizationId: organization.id }),
+        body: JSON.stringify({
+          notes, organizationId: organization.id, versionId: context.versionId,
+          inputSource: usingExample ? 'example' : 'personal_anonymized',
+          anonymized: usingExample ? false : anonymized,
+        }),
       });
       const body = await response.json();
       if (!response.ok) {
-        throw new Error(response.status === 401 ? "Este laboratorio requiere acceso privado." : response.status === 429 ? "Tu organización alcanzó la cuota de ejecuciones." : "No pudimos incubar esta minuta.");
+        throw new Error(response.status === 401 ? "Este laboratorio requiere acceso privado." : response.status === 429 ? "Tu organización alcanzó la cuota de ejecuciones." : response.status === 423 ? "Este deployment está pausado." : response.status === 409 ? "La versión ya no está activa." : "No pudimos incubar esta minuta.");
       }
       setRun(body);
     } catch (cause) {
@@ -95,11 +121,27 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
     }
   }
 
+  async function sendFeedback(rating: "CORRECT" | "INCORRECT") {
+    if (!run?.telemetry.run_id || feedbackBusy) return;
+    setFeedbackBusy(true);
+    setError('');
+    try {
+      const token = await getToken();
+      const response = await fetch('/api/run-feedback', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ organizationId: organization.id, runId: run.telemetry.run_id, rating }),
+      });
+      if (!response.ok) throw new Error('No pudimos registrar tu evaluación.');
+      setFeedback(rating);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'No pudimos registrar tu evaluación.'); }
+    finally { setFeedbackBusy(false); }
+  }
+
   return (
     <main className="lab-page">
       <header className="lab-nav">
         <a className="lab-brand" href="/" aria-label="Volver a Runtu"><RuntuMark /><span>runtu</span></a>
-        <div className="lab-nav-status"><i /> {organization.name} · {surface === "installed" ? "WEB APP PRIVADA" : "LAB PRIVADO"} · V0.2.0</div>
+        <div className="lab-nav-status"><i /> {organization.name} · {surface === "installed" ? "WEB APP PRIVADA" : "LAB PRIVADO"} · V{context?.version || '—'}</div>
         <a className="lab-back" href={surface === "installed" ? "/lab/minuta-comite/afuera" : "/lab"}><ArrowLeft size={15} /> {surface === "installed" ? "Afuera" : "El Nido"}</a>
       </header>
 
@@ -110,8 +152,8 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
         </div>
         <div className="lab-heading-meta">
           <span><ShieldCheck size={15} /> Sin acciones autónomas</span>
-          <span><FlaskConical size={15} /> 20/20 evaluaciones</span>
-          <span><Clock3 size={15} /> p95 3.3 segundos</span>
+          <span><FlaskConical size={15} /> {context?.evaluation ? `${context.evaluation.passed}/${context.evaluation.cases} · ${context.evaluation.sourceType}` : 'Suite de esta versión pendiente'}</span>
+          <span><Clock3 size={15} /> {context?.model || 'Cargando modelo…'}</span>
         </div>
       </section>
 
@@ -119,20 +161,21 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
         <form className="lab-input" onSubmit={incubate}>
           <div className="lab-panel-head">
             <div><span>01</span><strong>Notas de reunión</strong></div>
-            <button type="button" onClick={() => setNotes(example)}>Cargar ejemplo</button>
+            <button type="button" onClick={() => { setNotes(example); setAnonymized(false); }}>Cargar ejemplo</button>
           </div>
           <label htmlFor="meeting-notes">Pega notas o una transcripción</label>
           <textarea
             id="meeting-notes"
             value={notes}
-            onChange={(event) => setNotes(event.target.value.slice(0, 30_000))}
+            onChange={(event) => { setNotes(event.target.value.slice(0, 30_000)); setAnonymized(false); }}
             placeholder="Ejemplo: Ana enviará la encuesta el 24/07/2026…"
           />
-          <div className="lab-input-meta"><span>{notes.length.toLocaleString("es-PE")} / 30.000</span><span>Los datos no se guardan</span></div>
+          <div className="lab-input-meta"><span>{notes.length.toLocaleString("es-PE")} / 30.000</span><span>Contenido no persistido · store:false</span></div>
+          {!usingExample ? <label className="lab-anonymized"><input type="checkbox" checked={anonymized} onChange={(event) => setAnonymized(event.target.checked)} /><span>Confirmo que retiré datos personales y secretos antes de ejecutar.</span></label> : null}
           {error ? <div className="lab-error"><AlertTriangle size={16} /> {error}</div> : null}
           <div className="lab-actions">
-            <button className="lab-reset" type="button" onClick={() => { setNotes(""); setRun(null); }}><RotateCcw size={15} /> Limpiar</button>
-            <button className="lab-incubate" type="submit" disabled={!notes.trim() || loading}>
+            <button className="lab-reset" type="button" onClick={() => { setNotes(""); setRun(null); setAnonymized(false); }}><RotateCcw size={15} /> Limpiar</button>
+            <button className="lab-incubate" type="submit" disabled={!notes.trim() || loading || !context || (!usingExample && !anonymized)}>
               {loading ? "Incubando…" : "Incubar minuta"} <Sparkles size={16} />
             </button>
           </div>
@@ -141,7 +184,7 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
         <section className="lab-output" aria-live="polite">
           <div className="lab-panel-head">
             <div><span>02</span><strong>Minuta estructurada</strong></div>
-            <small>{run ? `${run.telemetry.model} · ${run.telemetry.latency_ms} ms` : "ESPERANDO"}</small>
+            <small>{run ? `V${run.telemetry.agent_version} · ${run.telemetry.latency_ms} MS` : "ESPERANDO"}</small>
           </div>
           {!run ? <EmptyState /> : (
             <div className="lab-result">
@@ -180,10 +223,9 @@ export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
               {run.output.warnings.length ? (
                 <div className="lab-warnings"><AlertTriangle size={17} /><div>{run.output.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div></div>
               ) : null}
-
-              <button className={`lab-review ${reviewed ? "reviewed" : ""}`} type="button" onClick={() => setReviewed(true)} disabled={reviewed}>
-                <Check size={16} /> {reviewed ? "Revisión humana registrada" : "Marcar como revisada"}
-              </button>
+              <div className="lab-evidence"><span>EJECUCIÓN REAL · NO ES LA SUITE</span><dl><div><dt>VERSIÓN</dt><dd>{run.telemetry.agent_version}</dd></div><div><dt>CHECKSUM</dt><dd>{run.telemetry.checksum?.slice(0, 12)}…</dd></div><div><dt>MODELO</dt><dd>{run.telemetry.model}</dd></div><div><dt>LATENCIA</dt><dd>{run.telemetry.latency_ms} ms</dd></div><div><dt>CUOTA RESTANTE</dt><dd>{run.telemetry.remaining_quota ?? '—'}</dd></div><div><dt>RETENCIÓN</dt><dd>store:false</dd></div></dl></div>
+              {run.telemetry.evaluation ? <details className="lab-details"><summary>SUITE EXACTA · {run.telemetry.evaluation.passed}/{run.telemetry.evaluation.cases} · {run.telemetry.evaluation.sourceType}</summary>{run.telemetry.evaluation.criticalCases.map((item) => <p key={item}>{item}</p>)}</details> : <p className="lab-suite-pending">Esta versión todavía no tiene suite oficial. La ejecución personal no hereda el 20/20 del baseline.</p>}
+              <div className="lab-feedback"><span>¿El resultado es correcto?</span><div><button className={feedback === 'CORRECT' ? 'active' : ''} type="button" onClick={() => sendFeedback('CORRECT')} disabled={feedbackBusy}><ThumbsUp size={15} /> Correcto</button><button className={feedback === 'INCORRECT' ? 'active' : ''} type="button" onClick={() => sendFeedback('INCORRECT')} disabled={feedbackBusy}><ThumbsDown size={15} /> Incorrecto</button></div><small>Tu feedback queda ligado al run; no reentrena automáticamente al agente.</small></div>
             </div>
           )}
         </section>

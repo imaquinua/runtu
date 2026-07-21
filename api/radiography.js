@@ -65,7 +65,13 @@ export default async function handler(req, res) {
 
     let radiography = await latestRadiography(sql, user.id, organizationId);
     if (!radiography) return res.status(404).json({ error: 'radiography_not_found' });
-    if (radiography.status === 'BUILT') return res.status(200).json({ radiography });
+    if (radiography.status === 'BUILT') {
+      const [, deployments] = await sql.transaction((transaction) => [
+        claimQuery(transaction, user.id),
+        transaction`select * from runtu.activate_lab_candidate(${organizationId}, ${radiography.built_version_id})`,
+      ]);
+      return res.status(200).json({ radiography, deployment: deployments[0] });
+    }
 
     const canonical = huevo0Payload();
     const definition = buildRadiographyDefinition(radiography);
@@ -86,8 +92,13 @@ export default async function handler(req, res) {
         )
       `,
     ]);
+    const version = rows[0];
+    const [, deployments] = await sql.transaction((transaction) => [
+      claimQuery(transaction, user.id),
+      transaction`select * from runtu.activate_lab_candidate(${organizationId}, ${version.version_id})`,
+    ]);
     radiography = await latestRadiography(sql, user.id, organizationId);
-    return res.status(201).json({ radiography, version: rows[0] });
+    return res.status(201).json({ radiography, version, deployment: deployments[0] });
   } catch (error) {
     const [status, code] = mapError(error);
     console.error('Radiography error', error instanceof Error ? error.message : String(error));
