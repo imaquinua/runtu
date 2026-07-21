@@ -31,6 +31,13 @@ La portada incorpora el plan de ejecución de 12 semanas: elección del proceso,
 
 La página pública no requiere base de datos, autenticación ni secretos.
 
+## Huevo 0 · Minuta de Comité
+
+La función protegida `POST /api/minuta` ejecuta el primer agente con
+`gpt-5-nano`. Requiere `OPENAI_API_KEY` y `RUNTU_LAB_TOKEN` como secretos de
+servidor en Vercel. La ruta permanece cerrada si falta el token del laboratorio
+y nunca expone la clave de OpenAI al navegador.
+
 ## Desarrollo
 
 ```bash
