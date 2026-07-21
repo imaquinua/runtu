@@ -45,6 +45,33 @@ const safeguards = [
   { icon: RotateCcw, title: "Siempre reversible", text: "Pausa, cuarentena y rollback forman parte del despliegue." },
 ];
 
+const executionPhases = [
+  {
+    weeks: "SEMANA 01",
+    title: "Elegimos el proceso",
+    description: "Un flujo repetitivo, un dueño, un resultado medible y un baseline humano.",
+    output: "SALIDA · RADIOGRAFÍA + 50 CASOS DE PRUEBA",
+  },
+  {
+    weeks: "SEMANAS 02–04",
+    title: "Construimos el huevo",
+    description: "Una fuente aprobada, instrucciones versionadas y una herramienta de solo lectura.",
+    output: "SALIDA · AGENTE V0 EN ENTORNO CERRADO",
+  },
+  {
+    weeks: "SEMANAS 05–08",
+    title: "Lo sometemos a escala",
+    description: "Evaluaciones, permisos mínimos, costo, latencia y aprobación humana para excepciones.",
+    output: "SALIDA · VERSIÓN CANDIDATA + EVIDENCIAS",
+  },
+  {
+    weeks: "SEMANAS 09–12",
+    title: "Sembramos un piloto",
+    description: "Modo sombra, canary al 10%, despliegue web, medición y rollback inmediato.",
+    output: "SALIDA · 30 DÍAS DE OPERACIÓN MEDIDA",
+  },
+];
+
 function RuntuMark({ size = 28, inverse = false }: { size?: number; inverse?: boolean }) {
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} aria-hidden="true">
@@ -60,11 +87,54 @@ function RuntuMark({ size = 28, inverse = false }: { size?: number; inverse?: bo
   );
 }
 
+const shellPixels: Array<[number, number]> = [
+  [4,0],[5,0],[6,0],[7,0],[3,1],[8,1],[2,2],[9,2],[2,3],[9,3],
+  [1,4],[10,4],[1,5],[10,5],[0,6],[11,6],[0,7],[11,7],[0,8],[11,8],
+  [0,9],[11,9],[1,10],[10,10],[1,11],[10,11],[2,12],[9,12],[3,13],
+  [4,13],[5,13],[6,13],[7,13],[8,13],
+];
+
+function PixelEgg({ unit = 9, stage = 2, hatched = false, ready = false }: {
+  unit?: number;
+  stage?: 0 | 1 | 2 | 3;
+  hatched?: boolean;
+  ready?: boolean;
+}) {
+  const removed = hatched
+    ? [[6,0],[7,0],[8,1],[9,2],[9,3],[10,4]]
+    : [[6,0],[7,0],[8,1]];
+  const pixels: Array<[number, number, string]> = [];
+  const shell = stage === 0 ? "rgba(253,250,242,.4)" : "#FDFAF2";
+
+  shellPixels.forEach(([x, y]) => {
+    if (!removed.some(([rx, ry]) => rx === x && ry === y)) pixels.push([x, y, shell]);
+  });
+
+  if (!hatched) {
+    const yolk = stage >= 2
+      ? [[5,9],[6,9],[4,10],[5,10],[6,10],[7,10],[5,11],[6,11]]
+      : [[5,10],[6,10],[5,9],[6,9]];
+    yolk.forEach(([x, y]) => pixels.push([x, y, "#FFD21E"]));
+    if (stage >= 2) [[5,2],[6,3],[5,4]].forEach(([x, y]) => pixels.push([x, y, "#CE2F68"]));
+    if (ready) [[9,1],[10,0]].forEach(([x, y]) => pixels.push([x, y, "#FFD21E"]));
+  } else {
+    [[10,1],[11,0],[12,2]].forEach(([x, y]) => pixels.push([x, y, "#FFD21E"]));
+  }
+
+  return (
+    <div className="inc-pixel-egg" style={{ width: 13 * unit, height: 14 * unit }} aria-hidden="true">
+      {pixels.map(([x, y, color], index) => (
+        <span key={`${x}-${y}-${index}`} style={{ left: x * unit, top: y * unit, width: unit, height: unit, background: color }} />
+      ))}
+    </div>
+  );
+}
+
 function Egg({ progress = 72 }: { progress?: number }) {
   return (
     <div className="inc-egg-wrap" aria-label={`Incubación al ${progress}%`}>
       <div className="inc-egg-glow" />
-      <div className="inc-egg"><RuntuMark size={150} inverse /></div>
+      <div className="inc-egg"><PixelEgg unit={9} stage={2} /></div>
     </div>
   );
 }
@@ -96,6 +166,7 @@ export function Incubadora() {
         <div className="inc-nav-links">
           <a href="#metodo">Método</a>
           <a href="#control">Control</a>
+          <a href="#ejecucion">Ejecución</a>
           <a href="#piloto">Piloto</a>
         </div>
         <a className="inc-button inc-button-small" href={pilotHref}>
@@ -126,7 +197,7 @@ export function Incubadora() {
             <span className="inc-live"><i /> SISTEMA ESTABLE</span>
           </div>
           <div className="inc-console-body">
-            <div className="inc-slot-label">AGENTE / YANAPAQ</div>
+            <div className="inc-slot-label">AGENTE / YANAPAQ · HUEVO 12×14</div>
             <Egg progress={72} />
             <div className="inc-progress-row">
               <span>ESCALA</span>
@@ -203,6 +274,35 @@ export function Incubadora() {
           <div><Braces /><small>OPERA</small><strong>Web · Slack · API</strong></div>
           <ArrowRight className="inc-flow-arrow" />
           <div><Pause /><small>CONTROLA</small><strong>Pausa · Rollback</strong></div>
+        </div>
+      </section>
+
+      <section className="inc-section inc-execution" id="ejecucion">
+        <div className="inc-execution-intro">
+          <div>
+            <p className="inc-eyebrow dark">04 / CÓMO LO HACEMOS REAL</p>
+            <h2>Doce semanas.<br /><em>Un agente que se puede medir.</em></h2>
+          </div>
+          <p>
+            No empezamos construyendo una fábrica. Incubamos un solo proceso de bajo riesgo,
+            demostramos que supera su baseline y recién entonces ampliamos canales o autonomía.
+          </p>
+        </div>
+        <div className="inc-execution-grid">
+          {executionPhases.map((phase, index) => (
+            <article key={phase.weeks}>
+              <div className="inc-execution-number">{String(index + 1).padStart(2, "0")}</div>
+              <span>{phase.weeks}</span>
+              <h3>{phase.title}</h3>
+              <p>{phase.description}</p>
+              <small>{phase.output}</small>
+            </article>
+          ))}
+        </div>
+        <div className="inc-scope-strip">
+          <div><span>PRIMERO</span><strong>Web · conocimiento interno · lectura</strong></div>
+          <div><span>DESPUÉS</span><strong>Slack · una acción con aprobación</strong></div>
+          <div><span>NO EN EL MVP</span><strong>WhatsApp · pagos · publicación autónoma</strong></div>
         </div>
       </section>
 

@@ -13,6 +13,16 @@ La experiencia se organiza en cuatro compuertas:
 3. **Escala:** evaluaciones, costo, latencia y aprobación humana.
 4. **Siembra:** versión trazable, despliegue gradual y rollback.
 
+La portada incorpora el plan de ejecución de 12 semanas: elección del proceso, construcción del agente, evaluación y piloto medido.
+
+## Identidad
+
+- Crema como espacio principal: Runtu vive al amanecer.
+- Isotipo vectorial abierto para marca, navegación y firma.
+- Huevos pixelados únicamente dentro de la interfaz del Laboratorio.
+- Fraunces para voz, IBM Plex Sans para cuerpo e IBM Plex Mono para etiquetas.
+- Press Start 2P solo como acento retro-técnico del Lab.
+
 ## Stack
 
 - Vite + React + TypeScript
