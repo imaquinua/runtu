@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
 import {
   ArrowRight,
   Braces,
@@ -60,7 +59,7 @@ function Egg({ progress = 72 }: { progress?: number }) {
 }
 
 export function Incubadora() {
-  const navigate = useNavigate();
+  const pilotHref = "mailto:hola@imaquinua.com?subject=Quiero%20incubar%20un%20agente%20con%20Runtu";
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -88,9 +87,9 @@ export function Incubadora() {
           <a href="#control">Control</a>
           <a href="#piloto">Piloto</a>
         </div>
-        <button className="inc-button inc-button-small" onClick={() => navigate("/register")}>
+        <a className="inc-button inc-button-small" href={pilotHref}>
           Solicitar piloto <ArrowRight size={15} aria-hidden="true" />
-        </button>
+        </a>
       </nav>
 
       <section className="inc-hero" id="inicio">
@@ -102,9 +101,9 @@ export function Incubadora() {
             Con tus datos, tu criterio y límites que puedes ver.
           </p>
           <div className="inc-actions">
-            <button className="inc-button" onClick={() => navigate("/register")}>
+            <a className="inc-button" href={pilotHref}>
               Poner mi primer huevo <ArrowRight size={17} aria-hidden="true" />
-            </button>
+            </a>
             <a className="inc-text-link" href="#metodo">Ver cómo se incuba <ChevronRight size={16} /></a>
           </div>
           <p className="inc-proof"><ShieldCheck size={15} /> Primero se prueba. Después se despliega.</p>
@@ -211,9 +210,9 @@ export function Incubadora() {
             <li>Evaluaciones y despliegue web</li>
             <li>30 días de medición</li>
           </ul>
-          <button className="inc-button wide" onClick={() => navigate("/register")}>
+          <a className="inc-button wide" href={pilotHref}>
             Solicitar evaluación <ArrowRight size={17} />
-          </button>
+          </a>
           <small>La solicitud no activa una suscripción.</small>
         </div>
       </section>
