@@ -27,8 +27,9 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "method_not_allowed" });
 
   const bearer = req.headers.authorization?.replace(/^Bearer\s+/i, "");
-  if (!process.env.RUNTU_LAB_TOKEN) return res.status(503).json({ error: "lab_not_configured" });
-  if (!authorized(bearer, process.env.RUNTU_LAB_TOKEN)) return res.status(401).json({ error: "unauthorized" });
+  const protectedPreview = process.env.VERCEL_ENV === "preview";
+  if (!protectedPreview && !process.env.RUNTU_LAB_TOKEN) return res.status(503).json({ error: "lab_not_configured" });
+  if (!protectedPreview && !authorized(bearer, process.env.RUNTU_LAB_TOKEN)) return res.status(401).json({ error: "unauthorized" });
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: "openai_not_configured" });
 
   const notes = req.body?.notes;

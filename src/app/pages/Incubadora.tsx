@@ -72,7 +72,7 @@ const executionPhases = [
   },
 ];
 
-function RuntuMark({ size = 28, inverse = false }: { size?: number; inverse?: boolean }) {
+export function RuntuMark({ size = 28, inverse = false }: { size?: number; inverse?: boolean }) {
   return (
     <svg viewBox="0 0 200 200" width={size} height={size} aria-hidden="true">
       <path
@@ -94,7 +94,7 @@ const shellPixels: Array<[number, number]> = [
   [4,13],[5,13],[6,13],[7,13],[8,13],
 ];
 
-function PixelEgg({ unit = 9, stage = 2, hatched = false, ready = false }: {
+export function PixelEgg({ unit = 9, stage = 2, hatched = false, ready = false }: {
   unit?: number;
   stage?: 0 | 1 | 2 | 3;
   hatched?: boolean;
