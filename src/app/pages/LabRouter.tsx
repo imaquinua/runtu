@@ -7,6 +7,7 @@ import { ProtectedLab, SessionBadge } from "../auth/ControlPlane";
 
 const AgentWorkspace = lazy(() => import("./Lab").then(({ Lab }) => ({ default: Lab })));
 const FormsDashboard = lazy(() => import("./FormsDashboard"));
+const AgentArchitecture = lazy(() => import("./AgentArchitecture"));
 
 type StageKey = "radiografia" | "arquitectura" | "escala" | "revision" | "instalar";
 
@@ -193,7 +194,7 @@ function RouteContent({ path }: { path: string }) {
   if (path === "/lab/formularios") return <Suspense fallback={<WorkspaceLoading />}><FormsDashboard /></Suspense>;
   if (path.endsWith("/escala")) return <Suspense fallback={<WorkspaceLoading />}><AgentWorkspace /></Suspense>;
   if (path.endsWith("/radiografia")) return <StageShell stage="radiografia" />;
-  if (path.endsWith("/arquitectura")) return <StageShell stage="arquitectura" />;
+  if (path.endsWith("/arquitectura")) return <Suspense fallback={<WorkspaceLoading />}><AgentArchitecture /></Suspense>;
   if (path.endsWith("/revision")) return <StageShell stage="revision" />;
   if (path.endsWith("/eclosion")) return <StageShell stage="eclosion" />;
   if (path.endsWith("/instalar")) return <StageShell stage="instalar" />;
