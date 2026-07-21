@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AlertTriangle, ArrowLeft, Check, Clock3, FlaskConical, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
 import "../../styles/lab.css";
@@ -31,6 +31,16 @@ Omar capacita a soporte el 25/07/2026.
 Nina validará el impacto en reclamos el 05/08/2026.
 La fiesta de aniversario se verá en otra reunión.`;
 
+const notesStorageKey = "runtu:lab:minuta-comite:notes:v1";
+
+function initialNotes() {
+  try {
+    return window.localStorage.getItem(notesStorageKey)?.slice(0, 30_000) || example;
+  } catch {
+    return example;
+  }
+}
+
 function EmptyState() {
   return (
     <div className="lab-empty">
@@ -41,11 +51,22 @@ function EmptyState() {
   );
 }
 export function Lab({ surface = "lab" }: { surface?: "lab" | "installed" }) {
-  const [notes, setNotes] = useState(example);
+  const [notes, setNotes] = useState(initialNotes);
   const [run, setRun] = useState<Run | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [reviewed, setReviewed] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(notesStorageKey, notes);
+      } catch {
+        // El input sigue funcionando aunque el navegador bloquee almacenamiento.
+      }
+    }, 300);
+    return () => window.clearTimeout(timeout);
+  }, [notes]);
 
   async function incubate(event: FormEvent) {
     event.preventDefault();
