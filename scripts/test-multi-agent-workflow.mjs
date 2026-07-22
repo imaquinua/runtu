@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { neon } from '@neondatabase/serverless';
+import { hasSecretField } from '../api/workflow.js';
 
 const runtimeUrl = process.env.RUNTU_DATABASE_URL
   || readFileSync('/private/tmp/runtu-runtime-database-url', 'utf8').trim();
@@ -12,6 +13,13 @@ const marker = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 const owner = `workflow_owner_${marker}`;
 const reviewer = `workflow_reviewer_${marker}`;
 const outsider = `workflow_outsider_${marker}`;
+
+if (!hasSecretField({ connection: { credentials: { token: 'simulated-secret' } } })) {
+  throw new Error('El filtro no rechazó credenciales anidadas.');
+}
+if (hasSecretField({ connectorSlug: 'google-drive', accessMode: 'READ_ONLY' })) {
+  throw new Error('El filtro confundió una política válida con credenciales.');
+}
 
 function claims(sql, userId) {
   return sql`select set_config('request.jwt.claims', ${JSON.stringify({ sub: userId })}, true)`;

@@ -4,7 +4,7 @@ import { claimQuery, database } from './_lib/database.js';
 const UUID = /^[0-9a-f-]{36}$/i;
 const SECRET_FIELDS = new Set(['token', 'secret', 'apiKey', 'api_key', 'password', 'credential', 'credentials']);
 
-function hasSecretField(value) {
+export function hasSecretField(value) {
   if (!value || typeof value !== 'object') return false;
   return Object.entries(value).some(([key, nested]) => SECRET_FIELDS.has(key) || hasSecretField(nested));
 }
