@@ -1,4 +1,4 @@
-import { SignInButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/clerk-react";
+import { SignInButton, SignOutButton, SignedIn, SignedOut, UserButton, useAuth } from "@clerk/clerk-react";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 
@@ -31,6 +31,7 @@ function SignedInControlPlane({ children }: { children: ReactNode }) {
   const { getToken } = useAuth();
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -42,7 +43,13 @@ function SignedInControlPlane({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ name: "Mi organización" }),
         });
-        if (!response.ok) throw new Error("No pudimos abrir tu organización.");
+        if (!response.ok) {
+          throw new Error(response.status === 401
+            ? "La sesión no pudo validarse. Reintenta o vuelve a iniciar sesión."
+            : response.status === 503
+              ? "El espacio privado todavía no está configurado en este entorno."
+              : "No pudimos abrir tu organización.");
+        }
         const body = await response.json();
         if (active) setOrganization(body.organization);
       } catch (cause) {
@@ -51,10 +58,10 @@ function SignedInControlPlane({ children }: { children: ReactNode }) {
     }
     bootstrap();
     return () => { active = false; };
-  }, [getToken]);
+  }, [attempt, getToken]);
 
   const value = useMemo(() => organization ? { organization, getToken } : null, [organization, getToken]);
-  if (error) return <main className="shell-session-state"><strong>NO PUDIMOS ABRIR EL LAB</strong><p>{error}</p><a href="/">Volver al inicio</a></main>;
+  if (error) return <main className="shell-session-state"><strong>NO PUDIMOS ABRIR EL LAB</strong><p>{error}</p><div className="shell-session-actions"><button type="button" onClick={() => { setError(""); setAttempt((current) => current + 1); }}>REINTENTAR</button><SignOutButton><button type="button">CERRAR SESIÓN</button></SignOutButton></div><a href="/">Volver al inicio</a></main>;
   if (!value) return <main className="shell-session-state" role="status"><strong>PREPARANDO TU NIDO…</strong><p>Estamos verificando el espacio privado.</p></main>;
   return <ControlPlaneContext.Provider value={value}>{children}</ControlPlaneContext.Provider>;
 }
@@ -72,4 +79,3 @@ export function SessionBadge() {
   const { organization } = useControlPlane();
   return <div className="shell-session"><span>{organization.name} · {organization.role}</span><UserButton /></div>;
 }
-

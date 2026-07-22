@@ -1,0 +1,26 @@
+.shell-session-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0 18px;
+}
+
+.shell-session-actions button,
+.shell-session-state > button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1.5px solid #fdfaf2;
+  background: #ffbe38;
+  color: #171219;
+  font: 800 10px/1 monospace;
+  cursor: pointer;
+}
+
+.shell-session-actions button:last-child {
+  background: transparent;
+  color: #fdfaf2;
+}
+
+@media (max-width: 520px) {
+  .shell-session-actions { flex-direction: column; }
+}

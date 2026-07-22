@@ -1,8 +1,9 @@
 import { lazy, Suspense, type ReactNode } from "react";
-import { ClerkProvider } from "@clerk/clerk-react";
+import { ClerkFailed, ClerkLoaded, ClerkLoading, ClerkProvider } from "@clerk/clerk-react";
 import { ArrowRight, Check, Download, FlaskConical, Gauge, LockKeyhole, MonitorDown, Pause, Share2, ShieldCheck } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
 import "../../styles/lab-shell.css";
+import "../../styles/session-recovery.css";
 import { ProtectedLab, SessionBadge } from "../auth/ControlPlane";
 
 const AgentWorkspace = lazy(() => import("./Lab").then(({ Lab }) => ({ default: Lab })));
@@ -211,7 +212,9 @@ export default function LabRouter({ path }: { path: string }) {
   }
   return (
     <ClerkProvider publishableKey={publishableKey} afterSignOutUrl="/">
-      <ProtectedLab><RouteContent path={path} /></ProtectedLab>
+      <ClerkLoading><main className="shell-session-state" role="status"><strong>CONECTANDO IDENTIDAD…</strong><p>Estamos verificando el acceso privado.</p></main></ClerkLoading>
+      <ClerkFailed><main className="shell-session-state"><strong>NO PUDIMOS CONECTAR LA IDENTIDAD</strong><p>Revisa tu conexión y vuelve a cargar esta página.</p><button type="button" onClick={() => window.location.reload()}>REINTENTAR</button></main></ClerkFailed>
+      <ClerkLoaded><ProtectedLab><RouteContent path={path} /></ProtectedLab></ClerkLoaded>
     </ClerkProvider>
   );
 }
