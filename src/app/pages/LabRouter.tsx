@@ -11,6 +11,7 @@ const FormsDashboard = lazy(() => import("./FormsDashboard"));
 const AgentArchitecture = lazy(() => import("./AgentArchitecture"));
 const Radiography = lazy(() => import("./Radiography"));
 const ScaleGate = lazy(() => import("./ScaleGate"));
+const MultiAgentWorkflow = lazy(() => import("./MultiAgentWorkflow"));
 
 type StageKey = "radiografia" | "arquitectura" | "escala" | "revision" | "instalar";
 
@@ -131,7 +132,7 @@ function Nido() {
   return (
     <LabFrame>
       <section className="shell-nido">
-        <header><p>EL NIDO · 1 AGENTE</p><h1>Tus agentes empiezan aquí.</h1><span>Solo mostramos estados respaldados por evidencia real.</span></header>
+        <header><p>EL NIDO · 1 AGENTE OPERATIVO · 3 MOLDES</p><h1>Tus agentes empiezan aquí.</h1><span>Separamos lo operativo de lo que todavía está en especificación o diseño.</span></header>
         <div className="shell-agent-grid">
           <a className="shell-agent-card" href={`/lab/${agentId}/escala`}>
             <div className="shell-agent-state"><span>SLOT-01</span><strong>CANDIDATO</strong></div>
@@ -143,23 +144,6 @@ function Nido() {
           <a className="shell-new-card" href="/lab/nuevo"><span>+</span><strong>INCUBAR NUEVA IDEA</strong><small>Empieza con un molde probado.</small></a>
           <a className="shell-new-card" href="/lab/formularios"><Share2 size={24} /><strong>FORMULARIOS COMPARTIBLES</strong><small>Crea un enlace con opt-in para WhatsApp o web.</small></a>
         </div>
-      </section>
-    </LabFrame>
-  );
-}
-
-function NewEgg() {
-  return (
-    <LabFrame>
-      <section className="shell-new">
-        <header><p>NUEVO HUEVO</p><h1>Elige qué quieres incubar.</h1><span>En el Fast Track solo Minuta de Comité está disponible.</span></header>
-        <article className="shell-template">
-          <div className="shell-template-egg"><PixelEgg unit={6} stage={1} /></div>
-          <div><span>HUEVO 0 · RIESGO BAJO</span><h2>Minuta de Comité</h2><p>Convierte notas crudas en decisiones completas, pendientes y un único grano semanal.</p></div>
-          <dl><div><dt>PRUEBAS BASE</dt><dd>20/20</dd></div><div><dt>HERRAMIENTAS</dt><dd>0</dd></div><div><dt>CONFIGURACIÓN</dt><dd>≈ 5 MIN</dd></div></dl>
-          <a href={`/lab/${agentId}/radiografia`}>ELEGIR ESTE HUEVO <ArrowRight size={15} /></a>
-        </article>
-        <div className="shell-coming"><span>Pre-diagnóstico E³ · PRÓXIMAMENTE</span><span>Lector de indicadores · PRÓXIMAMENTE</span><span>Desde cero · PRÓXIMAMENTE</span></div>
       </section>
     </LabFrame>
   );
@@ -193,7 +177,7 @@ function WorkspaceLoading() {
 function RouteContent({ path }: { path: string }) {
   if (path.startsWith("/a/")) return <Suspense fallback={<WorkspaceLoading />}><AgentWorkspace surface="installed" /></Suspense>;
   if (path === "/lab" || path === "/lab/") return <Nido />;
-  if (path === "/lab/nuevo") return <NewEgg />;
+  if (path === "/lab/nuevo" || path.startsWith('/lab/molde/')) return <Suspense fallback={<WorkspaceLoading />}><MultiAgentWorkflow path={path} /></Suspense>;
   if (path === "/lab/formularios") return <Suspense fallback={<WorkspaceLoading />}><FormsDashboard /></Suspense>;
   if (path.endsWith("/escala")) return <Suspense fallback={<WorkspaceLoading />}><ScaleGate /></Suspense>;
   if (path.endsWith("/radiografia")) return <Suspense fallback={<WorkspaceLoading />}><Radiography /></Suspense>;
