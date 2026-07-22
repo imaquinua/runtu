@@ -21,9 +21,14 @@
 .lab-panel-head button { border:0; background:none; color:#806900; cursor:pointer; font:600 9px/1 "IBM Plex Mono",monospace; text-transform:uppercase; }
 .lab-panel-head small { color:rgba(27,22,34,.5); font-size:8px; }
 .lab-input { padding-bottom:20px; }
-.lab-input > label { display:block; margin:24px 24px 10px; font:600 12px/1 "IBM Plex Sans",sans-serif; }
+.lab-input-label { margin:20px 24px 10px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.lab-input-label label { font:600 12px/1 "IBM Plex Sans",sans-serif; }
+.lab-input-label button { min-height:36px; padding:0 12px; display:flex; align-items:center; gap:7px; border:1.5px solid var(--ink); background:white; cursor:pointer; font:600 8px/1 "IBM Plex Mono",monospace; text-transform:uppercase; }
+.lab-input-label button.listening { background:#fff0f3; color:#932146; border-color:#932146; }
+.lab-input-label button:disabled { opacity:.45; cursor:not-allowed; }
 .lab-input textarea { width:calc(100% - 48px); min-height:390px; margin:0 24px; padding:18px; resize:vertical; border:1px solid rgba(27,22,34,.3); background:var(--cream); color:var(--ink); font:400 14px/1.65 "IBM Plex Mono",monospace; }
 .lab-input textarea:focus { outline:3px solid rgba(206,47,104,.25); border-color:var(--rose); }
+.lab-dictation-note { min-height:14px; margin:8px 24px 0; color:rgba(27,22,34,.48); font:500 8px/1.4 "IBM Plex Mono",monospace; text-transform:uppercase; }
 .lab-input-meta { padding:10px 24px 18px; display:flex; justify-content:space-between; color:rgba(27,22,34,.45); font:500 8px/1 "IBM Plex Mono",monospace; text-transform:uppercase; }
 .lab-anonymized { margin:0 24px 18px!important; padding:12px; display:flex!important; align-items:flex-start; gap:10px; border:1px solid rgba(27,22,34,.2); background:#fff8dc; font:500 10px/1.45 "IBM Plex Mono",monospace!important; }
 .lab-anonymized input { width:16px; height:16px; margin:0; flex:none; accent-color:var(--rose); }
@@ -53,6 +58,17 @@
 .lab-decision p,.lab-pending p { margin:5px 0 0; color:rgba(27,22,34,.55); font:500 9px/1.4 "IBM Plex Mono",monospace; }
 .lab-pending { padding:12px 14px; border:1px solid rgba(27,22,34,.15); }
 .lab-none { color:rgba(27,22,34,.5); font-size:12px; }
+.lab-operations { display:grid; gap:4px; padding:0 16px 16px; border:1.5px solid var(--ink); background:#faf7ef; }
+.lab-project,.lab-task { padding:13px 14px; display:flex; gap:11px; border:1px solid rgba(27,22,34,.14); background:white; }
+.lab-project + .lab-project,.lab-task + .lab-task { margin-top:8px; }
+.lab-project>svg,.lab-task>svg { flex:none; margin-top:2px; color:var(--rose); }
+.lab-project strong,.lab-task strong { display:block; font-size:13px; line-height:1.4; }
+.lab-project p,.lab-task p { margin:5px 0; color:rgba(27,22,34,.58); font-size:11px; line-height:1.4; }
+.lab-project small,.lab-task small { display:flex; align-items:center; gap:5px; color:#806900; font:600 8px/1.4 "IBM Plex Mono",monospace; text-transform:uppercase; }
+.lab-task.ready { border-left:4px solid #36a866; }
+.lab-task:not(.ready) { border-left:4px solid var(--yellow); }
+.lab-operation-note { margin:12px 0 0; padding:12px; display:flex; align-items:flex-start; gap:8px; background:#fff8dc; color:#6c5910; font:500 9px/1.5 "IBM Plex Mono",monospace; }
+.lab-operation-note svg { flex:none; }
 .lab-details { padding:14px; background:#eeeae0; font-size:11px; line-height:1.5; }
 .lab-details summary { cursor:pointer; font:600 9px/1 "IBM Plex Mono",monospace; text-transform:uppercase; }
 .lab-details p:last-child { margin-bottom:0; }
@@ -92,6 +108,7 @@
   .lab-workspace { padding:0 18px 50px; }
   .lab-input,.lab-output { min-height:auto; box-shadow:3px 3px 0 var(--ink); }
   .lab-input textarea { min-height:320px; }
+  .lab-input-label { align-items:flex-start; flex-direction:column; }
   .lab-actions { flex-direction:column-reverse; }
   .lab-actions button { width:100%; }
   .lab-footer { padding:22px 18px; gap:18px; flex-direction:column; align-items:flex-start; }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Check, LockKeyhole, Save, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, LockKeyhole, Plus, Save, ShieldCheck } from 'lucide-react';
 import { useControlPlane } from '../auth/ControlPlane';
 import '../../styles/radiography.css';
+import '../../styles/radiography-operations.css';
 
 type Draft = { agentName: string; primaryUser: string; desiredResult: string; teamContext: string };
 type RadiographyRecord = {
@@ -115,6 +116,18 @@ export default function Radiography() {
     finally { setBusy(null); }
   }
 
+  function startNewVersion() {
+    if (!owner || record?.status !== 'BUILT') return;
+    setDraft({
+      agentName: record.agent_name,
+      primaryUser: record.primary_user,
+      desiredResult: record.desired_result,
+      teamContext: record.team_context,
+    });
+    setRecord(null);
+    setMessage('Nueva versión preparada. Al construirla agregará dictado, proyectos, tareas y responsables sin modificar la versión activa.');
+  }
+
   const purpose = record?.status === 'BUILT'
     ? record.purpose_summary
     : draft.agentName && draft.primaryUser && draft.desiredResult && draft.teamContext
@@ -138,7 +151,7 @@ export default function Radiography() {
           <div className="radiography-purpose"><ShieldCheck size={20} /><span>RESUMEN DE PROPÓSITO</span><p>{purpose}</p></div>
           <div className="radiography-limits"><header><LockKeyhole size={18} /><span>LÍMITES BASE · NO DESACTIVABLES</span></header><ul>{LIMITS.map((limit) => <li key={limit}><Check size={15} /> {limit}</li>)}</ul></div>
           {message ? <p className="radiography-message" role="status">{message}</p> : null}
-          {record?.status === 'BUILT' ? <div className="radiography-built"><strong>VERSIÓN {record.built_version} CONSTRUIDA</strong><code>{record.checksum_sha256}</code><a href="/lab/minuta-comite/arquitectura">VER ARQUITECTURA <ArrowRight size={15} /></a></div> : owner ? <div className="radiography-actions"><button type="button" onClick={() => submit('save')} disabled={Boolean(busy)}><Save size={15} /> {busy === 'save' ? 'GUARDANDO…' : 'GUARDAR BORRADOR'}</button><button className="primary" type="button" onClick={() => submit('build')} disabled={Boolean(busy)}> {busy === 'build' ? 'CONSTRUYENDO…' : 'CONSTRUIR VERSIÓN'} <ArrowRight size={15} /></button></div> : <p className="radiography-readonly">REVIEWER puede inspeccionar esta Radiografía, pero no modificarla ni aprobarla.</p>}
+          {record?.status === 'BUILT' ? <div className="radiography-built"><strong>VERSIÓN {record.built_version} CONSTRUIDA</strong><code>{record.checksum_sha256}</code><a href="/lab/minuta-comite/arquitectura">VER ARQUITECTURA <ArrowRight size={15} /></a>{owner ? <button type="button" onClick={startNewVersion}><Plus size={15} /> CREAR NUEVA VERSIÓN OPERATIVA</button> : null}</div> : owner ? <div className="radiography-actions"><button type="button" onClick={() => submit('save')} disabled={Boolean(busy)}><Save size={15} /> {busy === 'save' ? 'GUARDANDO…' : 'GUARDAR BORRADOR'}</button><button className="primary" type="button" onClick={() => submit('build')} disabled={Boolean(busy)}> {busy === 'build' ? 'CONSTRUYENDO…' : 'CONSTRUIR VERSIÓN'} <ArrowRight size={15} /></button></div> : <p className="radiography-readonly">REVIEWER puede inspeccionar esta Radiografía, pero no modificarla ni aprobarla.</p>}
         </aside>
       </form>
     </main>

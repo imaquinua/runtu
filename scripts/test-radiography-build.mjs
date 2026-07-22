@@ -74,18 +74,18 @@ try {
 
   const [, [firstBuild]] = await runtime.transaction((sql) => build(sql, owner));
   const [, [secondBuild]] = await runtime.transaction((sql) => build(sql, owner));
-  if (firstBuild.version_id !== secondBuild.version_id || firstBuild.version !== '0.3.0') throw new Error('El doble submit creó otra versión.');
+  if (firstBuild.version_id !== secondBuild.version_id || firstBuild.version !== '0.4.0') throw new Error('El doble submit creó otra versión.');
 
   const [builtRow] = await admin`select status, approved_by, approved_at from runtu.radiographies where id = ${secondSave.id}`;
   if (builtRow?.status !== 'BUILT' || builtRow?.approved_by !== owner || !builtRow?.approved_at) throw new Error('La aprobación no quedó atribuida.');
   const versions = await admin`select version, checksum_scope, immutable from runtu.agent_versions where organization_id = ${organization.id} order by version`;
-  if (versions.length !== 2 || versions[1]?.version !== '0.3.0' || versions[1]?.checksum_scope !== 'definition' || !versions[1]?.immutable) {
+  if (versions.length !== 2 || versions[1]?.version !== '0.4.0' || versions[1]?.checksum_scope !== 'definition' || !versions[1]?.immutable) {
     throw new Error('La versión candidata no quedó congelada junto al baseline.');
   }
   const [, [newDraft]] = await runtime.transaction((sql) => save(sql, owner, { ...fields, agentName: 'Minuta comercial mejorada' }));
   if (newDraft.revision !== 2 || newDraft.id === secondSave.id) throw new Error('Editar tras construir alteró la Radiografía aprobada.');
 
-  console.log(`PASS: Radiografía r1 → v0.3.0 ${checksum.slice(0, 12)}…; límites fijos; aprobación atribuida; doble submit idempotente; r2 separada.`);
+  console.log(`PASS: Radiografía r1 → v0.4.0 ${checksum.slice(0, 12)}…; dictado/proyectos/tareas; límites fijos; aprobación atribuida; doble submit idempotente; r2 separada.`);
 } finally {
   if (organization?.id) await admin`delete from runtu.organizations where id = ${organization.id}`;
 }

@@ -10,8 +10,9 @@ type AgentRecord = {
     agent: { purpose: string }; runtime: { model: string; budget_per_run_usd: number };
     policy: { retention: string; prohibited_actions: string[] }; tools: unknown[];
     configuration?: { radiography_id?: string };
+    capabilities?: string[];
   };
-  output_schema: { required?: string[] };
+  output_schema: { required?: string[]; properties?: { projects?: unknown } };
   report_id: string | null; source_type: string | null; model: string | null; cases: number | null; passed: number | null;
   pass_rate: string | null; schema_pass_rate: string | null; policy_pass_rate: string | null;
   latency_p95_ms: number | null; estimated_cost_usd: string | null;
@@ -74,7 +75,7 @@ export default function AgentArchitecture() {
       <header><a href="/lab/minuta-comite/radiografia"><ArrowLeft size={15} /> RADIOGRAFÍA</a><span>RUNTU · REGISTRO VERSIONADO</span><strong>{organization.name} · {organization.role}</strong></header>
       <section className="architecture-hero"><div><p>PASO 2 DE 5 · ARQUITECTURA</p><h1>El criterio ya tiene<br /><em>huella digital.</em></h1><span>{agent.manifest.agent.purpose}</span></div><aside><small>ESTADO CANÓNICO</small><strong>{agent.state}</strong><span>v{agent.version} · RIESGO {agent.risk_level.toUpperCase()}</span></aside></section>
       <section className="architecture-grid">
-        <article className="architecture-contract"><header><span>CONTRATO DEL AGENTE</span><strong>{agent.slug}</strong></header><dl><div><dt>ENTRADA</dt><dd>Notas de reunión · texto · máximo 30.000 caracteres</dd></div><div><dt>CRITERIO</dt><dd>Decisiones completas; lo incompleto queda pendiente; el ruido se explica.</dd></div><div><dt>SALIDA</dt><dd>Minuta estructurada bajo esquema JSON estricto.</dd></div><div><dt>LÍMITES</dt><dd>No inventa responsables ni fechas. No ejecuta ni envía mensajes.</dd></div><div><dt>RETENCIÓN</dt><dd>ZERO_CONTENT · contenido no persistido por Runtu.</dd></div></dl></article>
+        <article className="architecture-contract"><header><span>CONTRATO DEL AGENTE</span><strong>{agent.slug}</strong></header><dl><div><dt>ENTRADA</dt><dd>{agent.manifest.capabilities?.includes('dictation_input') ? 'Notas, texto o dictado convertido en transcripción · máximo 30.000 caracteres' : 'Notas de reunión · texto · máximo 30.000 caracteres'}</dd></div><div><dt>CRITERIO</dt><dd>Decisiones completas; lo incompleto queda pendiente; el ruido se explica.</dd></div><div><dt>SALIDA</dt><dd>{agent.output_schema?.properties?.projects ? 'Minuta, proyectos y tareas con responsables bajo esquema JSON estricto.' : 'Minuta estructurada bajo esquema JSON estricto.'}</dd></div><div><dt>LÍMITES</dt><dd>No inventa responsables ni fechas. No ejecuta ni envía mensajes.</dd></div><div><dt>RETENCIÓN</dt><dd>ZERO_CONTENT · contenido no persistido por Runtu.</dd></div></dl></article>
         <aside className="architecture-proof">
           <div><Fingerprint size={20} /><span>CHECKSUM SHA-256</span><code>{agent.checksum_sha256}</code></div>
           <div><LockKeyhole size={20} /><span>INMUTABILIDAD</span><strong>{agent.immutable ? 'VERSIÓN CONGELADA' : 'EDITABLE'}</strong><small>Un cambio exige una versión nueva y otro checksum.</small></div>

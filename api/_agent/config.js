@@ -91,3 +91,62 @@ export const OUTPUT_SCHEMA = {
     warnings: { type: "array", items: { type: "string" } },
   },
 };
+
+export const PROJECT_OUTPUT_SCHEMA = {
+  ...structuredClone(OUTPUT_SCHEMA),
+  required: [...OUTPUT_SCHEMA.required, "projects", "tasks"],
+  properties: {
+    ...structuredClone(OUTPUT_SCHEMA.properties),
+    projects: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "objective", "owner", "source"],
+        properties: {
+          name: { type: "string" },
+          objective: { type: "string" },
+          owner: { type: ["string", "null"] },
+          source: { enum: ["explicit", "inferred"] },
+        },
+      },
+    },
+    tasks: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "project", "owner", "due_date", "status"],
+        properties: {
+          title: { type: "string" },
+          project: { type: ["string", "null"] },
+          owner: { type: ["string", "null"] },
+          due_date: { type: ["string", "null"] },
+          status: { enum: ["ready", "needs_owner", "needs_due_date", "needs_owner_and_due_date"] },
+        },
+      },
+    },
+  },
+};
+
+export function projectAgentInstructions(version) {
+  const versionedBase = AGENT_INSTRUCTIONS
+    .replace('Minuta de Comité v0.2.0', `Minuta de Comité v${version}`)
+    .replace('Usa agent_version igual a 0.2.0.', `Usa agent_version igual a ${version}.`);
+
+  return `${versionedBase}
+
+PROYECTOS, TAREAS Y RESPONSABLES
+- projects y tasks son una vista operativa adicional; no reemplazan decided ni pending_data.
+- Crea un proyecto cuando las notas lo nombren como proyecto o cuando exista un objetivo común con dos o más tareas relacionadas.
+- Si el proyecto fue nombrado explícitamente, usa source explicit. Si agrupas tareas por un objetivo común, usa source inferred y un nombre descriptivo, breve y neutral.
+- No conviertas una única tarea aislada en proyecto. En ese caso, registra la tarea con project null.
+- El objective resume el resultado buscado con información presente en las notas. No inventes alcance, métricas ni entregables.
+- El owner de un proyecto solo puede ser una persona explícitamente responsable del proyecto completo. El responsable de una tarea no se convierte automáticamente en responsable del proyecto.
+- Registra como task cada acción concreta identificable, aunque todavía le falte persona responsable o fecha.
+- project debe coincidir exactamente con name de un elemento de projects o ser null.
+- Una tarea con persona y fecha explícitas usa status ready. Si falta alguno, usa needs_owner, needs_due_date o needs_owner_and_due_date según corresponda.
+- La misma acción puede aparecer en tasks y también en decided o pending_data porque son vistas complementarias, pero no la dupliques dentro de una misma lista.
+- Si no hay proyectos o tareas válidos, devuelve los arreglos vacíos. Nunca fuerces contenido para llenar el esquema.
+- Estos proyectos y tareas son borradores para revisión humana. No los publiques ni los sincronices con sistemas externos.`;
+}

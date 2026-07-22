@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useState } from "react";
-import { AlertTriangle, ArrowLeft, Check, Clock3, FlaskConical, RotateCcw, ShieldCheck, Sparkles, ThumbsDown, ThumbsUp } from "lucide-react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { AlertTriangle, ArrowLeft, Check, Clock3, FlaskConical, FolderKanban, ListTodo, Mic, RotateCcw, ShieldCheck, Sparkles, Square, ThumbsDown, ThumbsUp, UserRound } from "lucide-react";
 import { PixelEgg, RuntuMark } from "./Incubadora";
 import { useControlPlane } from "../auth/ControlPlane";
 import "../../styles/lab.css";
@@ -7,6 +7,11 @@ import "../../styles/lab.css";
 type Decision = { decision: string; owner: string; due_date: string };
 type Pending = { missing: string; owner: string | null; due_date: string | null };
 type Noise = { topic: string; reason: string };
+type Project = { name: string; objective: string; owner: string | null; source: "explicit" | "inferred" };
+type Task = {
+  title: string; project: string | null; owner: string | null; due_date: string | null;
+  status: "ready" | "needs_owner" | "needs_due_date" | "needs_owner_and_due_date";
+};
 type Minuta = {
   agent_id: string;
   agent_version: string;
@@ -16,6 +21,8 @@ type Minuta = {
   discarded_noise: Noise[];
   weekly_grain: { status: "decided" | "pending"; statement: string };
   warnings: string[];
+  projects?: Project[];
+  tasks?: Task[];
 };
 type Run = {
   output: Minuta;
@@ -49,10 +56,38 @@ export type RuntimeContext = {
 };
 
 const example = `COMITÉ 20/07/2026. Asistentes: Julia, Omar y Nina.
+Proyecto Experiencia sin fricción: Julia lidera el proyecto para reducir reclamos.
 Julia publica la nueva política de devoluciones el 23/07/2026.
 Omar capacita a soporte el 25/07/2026.
 Nina validará el impacto en reclamos el 05/08/2026.
 La fiesta de aniversario se verá en otra reunión.`;
+
+type RecognitionResult = { isFinal: boolean; 0: { transcript: string } };
+type RecognitionEvent = { results: ArrayLike<RecognitionResult> };
+type RecognitionError = { error: string };
+type Recognition = {
+  lang: string; continuous: boolean; interimResults: boolean;
+  onresult: ((event: RecognitionEvent) => void) | null;
+  onerror: ((event: RecognitionError) => void) | null;
+  onend: (() => void) | null;
+  start(): void; stop(): void; abort(): void;
+};
+type RecognitionConstructor = new () => Recognition;
+
+function recognitionConstructor() {
+  const speechWindow = window as typeof window & {
+    SpeechRecognition?: RecognitionConstructor;
+    webkitSpeechRecognition?: RecognitionConstructor;
+  };
+  return speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition || null;
+}
+
+const TASK_STATUS: Record<Task["status"], string> = {
+  ready: "Lista para revisar",
+  needs_owner: "Falta responsable",
+  needs_due_date: "Falta fecha",
+  needs_owner_and_due_date: "Faltan responsable y fecha",
+};
 
 function EmptyState() {
   return (
@@ -73,7 +108,12 @@ export function Lab({ surface = "lab", initialContext = null }: { surface?: "lab
   const [anonymized, setAnonymized] = useState(false);
   const [feedback, setFeedback] = useState<"CORRECT" | "INCORRECT" | null>(null);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
+  const [dictationState, setDictationState] = useState<"idle" | "listening">("idle");
+  const recognitionRef = useRef<Recognition | null>(null);
+  const dictationSupported = Boolean(recognitionConstructor());
   const usingExample = notes.trim() === example.trim();
+
+  useEffect(() => () => recognitionRef.current?.abort(), []);
 
   useEffect(() => {
     if (initialContext) return;
@@ -137,6 +177,47 @@ export function Lab({ surface = "lab", initialContext = null }: { surface?: "lab
     finally { setFeedbackBusy(false); }
   }
 
+  function toggleDictation() {
+    if (dictationState === "listening") {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const RecognitionApi = recognitionConstructor();
+    if (!RecognitionApi) {
+      setError("El dictado no está disponible en este navegador. Puedes pegar una transcripción.");
+      return;
+    }
+    const recognition = new RecognitionApi();
+    const base = notes.trimEnd();
+    recognition.lang = "es-PE";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (event) => {
+      let finalText = "";
+      let interimText = "";
+      for (let index = 0; index < event.results.length; index += 1) {
+        const result = event.results[index];
+        if (result.isFinal) finalText += `${result[0].transcript.trim()} `;
+        else interimText += result[0].transcript;
+      }
+      const spoken = `${finalText}${interimText}`.trim();
+      setNotes(`${base}${base && spoken ? "\n" : ""}${spoken}`.slice(0, 30_000));
+      setAnonymized(false);
+    };
+    recognition.onerror = (event) => {
+      const permissionDenied = event.error === "not-allowed" || event.error === "service-not-allowed";
+      setError(permissionDenied ? "Necesitamos permiso de micrófono para dictar. También puedes pegar una transcripción." : "El dictado se interrumpió. Tu texto permanece en la caja.");
+    };
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setDictationState("idle");
+    };
+    recognitionRef.current = recognition;
+    setError("");
+    setDictationState("listening");
+    recognition.start();
+  }
+
   return (
     <main className="lab-page">
       <header className="lab-nav">
@@ -163,13 +244,14 @@ export function Lab({ surface = "lab", initialContext = null }: { surface?: "lab
             <div><span>01</span><strong>Notas de reunión</strong></div>
             <button type="button" onClick={() => { setNotes(example); setAnonymized(false); }}>Cargar ejemplo</button>
           </div>
-          <label htmlFor="meeting-notes">Pega notas o una transcripción</label>
+          <div className="lab-input-label"><label htmlFor="meeting-notes">Pega notas, una transcripción o dicta</label><button className={dictationState === "listening" ? "listening" : ""} type="button" onClick={toggleDictation} disabled={!dictationSupported} aria-pressed={dictationState === "listening"}>{dictationState === "listening" ? <><Square size={13} /> Detener dictado</> : <><Mic size={15} /> Dictar</>}</button></div>
           <textarea
             id="meeting-notes"
             value={notes}
             onChange={(event) => { setNotes(event.target.value.slice(0, 30_000)); setAnonymized(false); }}
             placeholder="Ejemplo: Ana enviará la encuesta el 24/07/2026…"
           />
+          <p className="lab-dictation-note" role="status">{dictationState === "listening" ? "ESCUCHANDO · habla con naturalidad; podrás editar antes de enviar." : dictationSupported ? "El navegador convierte la voz en texto. Runtu sólo procesa la transcripción cuando presionas Incubar." : "Dictado no disponible aquí; pega una transcripción para continuar."}</p>
           <div className="lab-input-meta"><span>{notes.length.toLocaleString("es-PE")} / 30.000</span><span>Contenido no persistido · store:false</span></div>
           {!usingExample ? <label className="lab-anonymized"><input type="checkbox" checked={anonymized} onChange={(event) => setAnonymized(event.target.checked)} /><span>Confirmo que retiré datos personales y secretos antes de ejecutar.</span></label> : null}
           {error ? <div className="lab-error"><AlertTriangle size={16} /> {error}</div> : null}
@@ -192,6 +274,28 @@ export function Lab({ surface = "lab", initialContext = null }: { surface?: "lab
                 <small>GRANO DE LA SEMANA</small>
                 <strong>{run.output.weekly_grain.statement}</strong>
               </article>
+
+              {run.output.projects || run.output.tasks ? <div className="lab-operations">
+                <div className="lab-result-section">
+                  <h2><span>{run.output.projects?.length || 0}</span> Proyectos</h2>
+                  {run.output.projects?.length ? run.output.projects.map((project, index) => (
+                    <article className="lab-project" key={`${project.name}-${index}`}>
+                      <FolderKanban size={17} />
+                      <div><strong>{project.name}</strong><p>{project.objective}</p><small><UserRound size={12} /> {project.owner || "Responsable por definir"} · {project.source === "explicit" ? "Nombrado en la reunión" : "Agrupación propuesta por IA"}</small></div>
+                    </article>
+                  )) : <p className="lab-none">No se identificó un proyecto válido.</p>}
+                </div>
+                <div className="lab-result-section">
+                  <h2><span>{run.output.tasks?.length || 0}</span> Tareas</h2>
+                  {run.output.tasks?.length ? run.output.tasks.map((task, index) => (
+                    <article className={`lab-task ${task.status}`} key={`${task.title}-${index}`}>
+                      <ListTodo size={16} />
+                      <div><strong>{task.title}</strong><p>{task.project || "Sin proyecto"} · {task.owner || "Sin responsable"} · {task.due_date || "Sin fecha"}</p><small>{TASK_STATUS[task.status]}</small></div>
+                    </article>
+                  )) : <p className="lab-none">No se identificaron tareas accionables.</p>}
+                </div>
+                <p className="lab-operation-note"><ShieldCheck size={14} /> Borrador operativo: revisa responsables y fechas antes de crear o sincronizar tareas fuera de Runtu.</p>
+              </div> : null}
 
               <div className="lab-result-section">
                 <h2><span>{run.output.decided.length}</span> Decidido</h2>
